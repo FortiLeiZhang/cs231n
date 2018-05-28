@@ -26,3 +26,7 @@ Validation
 >Evaluate on the test set only a single time, at the very end.
 
 所谓5-fold cross validation就是将所有的train data均匀分成5份，每次取4份做train，另外一份做val，重复五次，将五次结果平均。这样做的话每个数据都做了四次train，一次val。这样做的缺点是太expensive，NN中通常不用。注意，在这个过程中，test是不参与其中的。一定先将test set拿出来放到一边，不到最后交结果的时候不要碰它。
+
+此处有作业
+---
+[Assignment 1： KNN](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/knn.ipynb)
