@@ -30,3 +30,34 @@ Validation
 此处有作业
 ---
 [Assignment 1： KNN](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/knn.ipynb)
+
+> Inline Question #1:
+>
+>Notice the structured patterns in the distance matrix, where some rows or columns are visible brighter. (Note that with the default color scheme black indicates low distances while white indicates high distances.)
+>
+>1. What in the data is the cause behind the distinctly bright rows?
+>
+>2. What causes the columns?
+
+第一个问题问的是图中特别亮的行表明了什么，特别亮的列又代表了什么。
+图中的x轴是5000个train data，y轴是500个test data，某一行特别亮表示这一行所代表的那个test point与5000个train的距离都比较远，说明这个test与所有的train都不太像；相反，如果一列比较亮，则说明train里面的这张图片与500个test图片都不太像。
+
+> Inline Question 2:
+>
+> We can also other distance metrics such as L1 distance. The performance of a Nearest Neighbor classifier that uses L1 distance will not change if (Select all that apply.):
+>1. The data is preprocessed by subtracting the mean.
+>2. The data is preprocessed by subtracting the mean and dividing by the standard deviation.
+>3. The coordinate axes for the data are rotated.
+>4. None of the above.
+
+用L1的话，1,2都是标准的数据归一化处理方法，不会影响结果。至于3，我们在前面说过，L1与坐标系的选取有关系，所以会影响结果。
+
+> Inline Question 3
+> Which of the following statements about  k-Nearest Neighbor (k-NN) are true in a classification setting, and for all k? Select all that apply.
+>1. The training error of a 1-NN will always be better than that of 5-NN.
+>2. The test error of a 1-NN will always be better than that of a 5-NN.
+>3. The decision boundary of the k-NN classifier is linear.
+>4. The time needed to classify a test example with the k-NN classifier grows with the size of the training set.
+>5. None of the above.
+
+1,2显然不正确；因为kNN是线性分类器，所以边界也是线性的；training set越大，在predict时需要计算test example与所有training的距离，所以在相同算力条件下，taining set越大，predict一个test sample所需时间越多，时间复杂度为O(N)。
