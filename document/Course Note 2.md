@@ -108,10 +108,8 @@ S(x) = -\sum_i{p(x_i)\log{p(x_i)}}.
 $$
 相对熵(relative entropy)又称为KL散度，是两个随机分布间距离大小的度量，定义为:
 $$
-\begin{equation}
-D_{KL}(p||q) = E_p \left \{ \log \frac{p(x)}{q(x)} \right \} = \sum_{x\in X}p(x) \log \left \{ \frac{p(x)}{q(x)} \right \} \\
+D_{KL}(p||q) = E_p \left \{ \log \frac{p(x)}{q(x)} \right \} = \sum_{x\in X}p(x) \log \left \{ \frac{p(x)}{q(x)} \right \}
 = \sum_{x\in X}p(x)\log p(x) - \sum_{x\in X}p(x)\log q(x),
-\end{equation}
 $$
 前一部分是 $p(x)$ 负熵，如果p(x)是已知的分布，这个值是定值；第二部分就是 $p(x)$ 和 $q(x)$ 之间的交叉熵(cross entropy)， 定义为:
 $$
