@@ -5,13 +5,17 @@ Linear Classification
 实现image classification更常用的方法是采用score function + loss function。其中，score function将raw data映射为class score；而loss function衡量所得到的的class score与已知的ground truth差别有多大。所有的NN和CNN问题实际上都是围绕这两个function进行的。
 
 ###Score function
+
 最容易想到的就是linear function。假设有张32\*32\*3的图片,属于10个类别其中之一，那么将每一个像素点视为[0, 255]之间的一个数字，得到(32, 32, 3)的一个tensor，然后flatten为32*32*3=3072维的vector X;那么系数矩阵W应为(3072, 10)，X与W矩阵相乘：(1, 3072)\*(3072, 10)=(1, 10)，再加上一个bias项(1, 10)，得到的结果就是X分别属于10个类别中任一个的score。这个想法虽然看上去很简单很原始，但实际上所有基于NN的图像识别最底层的原理都是基于此。这里我有一些改进的想法，放在另外一个project中。
 
 bias trick：将W扩一列，x扩一行恒为1，则可以将bias项统一到W中
 
 数据预处理：所有数据都减去均值。
+
 ###Loss function
+
 ####Multiclass SVM
+
 如果correct比incorrect的score大出至少一个margin，那么loss为0；否则loss为两者之差加margin，公式如下：
 $$L_i = \sum_{j\neq y_i}\max(0, s_j - s_{y_i} + \Delta)，$$
 这里 $\Delta$通常设置为1.0，不用纠结，大小没影响。公式很简单，但是视频里问的几个问题比较好，Note里没有，写在这里：
@@ -38,7 +42,9 @@ min为0，max为 $+\infty$
 $$L_i = \sum_{j\neq y_i}\max(0, s_j - s_{y_i} + \Delta)^2$$
 
 有影响，平方项对偏差大的项penalty更大。
+
 ####Regularization
+
 正则项对系数进行惩罚，使得W的系数尽量小，模型尽量趋向简单，从而避免overfitting问题。除了regularization之外，常用方法还有dropout，BN，stochastic depth，fractional pooling等等。
 
 对于L1/L2正则的选择，L1产生sparse的W，即一项很大，其他尽量为0；L2产生spread的W，即所有项大小都尽量平均。记下这两个例子就行了：L1 [1 0 0 0]；L2 [0.25 0.25 0.25 0.25]。
@@ -81,6 +87,7 @@ scores是(500, 10)，correct_score是(500,)，如果这里你用两者直接相�
 SVM的作业先写到这里，还有计算grad和SGD，等视频讲到了再回来补上。
 
 ####Softmax
+
 对于SVM而言，由score function得到的score仅仅相对大小是有意义的，每一项的绝对值并不表达任何意义。通过softmax function，可以将score与概率联系起来。softmax函数如下：
 $$
 f(s_k) = \frac{e^{s_k}}{\sum_j{e^{s_j}}},
@@ -94,6 +101,7 @@ $$
 这里解释一下为什么cross entropy可以用作loss function。
 
 #####cross entropy
+
 熵(entropy)是一个事件所包含的信息量，定义为:
 $$
 S(x) = -\sum_i{p(x_i)\log{p(x_i)}}.
