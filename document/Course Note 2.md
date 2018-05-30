@@ -45,4 +45,37 @@ $$L_i = \sum_{j\neq y_i}\max(0, s_j - s_{y_i} + \Delta)^2$$
 
 此处有作业
 ---
-[Assignment 1: SVM]()
+[Assignment 1: SVM](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/svm.ipynb)
+
+作业这里细说说这个svm_loss_vectorized是怎么做的
+```python
+def svm_loss_vectorized(W, X, y, reg):
+    loss, grad = None, None
+    N = X.shape[0]
+    C = W.shape[1]
+
+    scores = X.dot(W)
+    correct_score = scores[np.arange(N), y]
+
+    scores = np.maximum(0, scores - correct_score[:, np.newaxis] + 1.0)
+    scores[np.arange(N), y] = 0
+
+    loss = np.sum(scores) / N + reg * np.sum(W * W)
+
+    return loss, grad
+```
+首先看这一行
+```python
+correct_score = scores[np.arange(N), y]
+```
+要从得到的scores(500, 10)中找出正确class的score是多少，这里用到的是numpy里的[Advanced Indexing](https://docs.scipy.org/doc/numpy-1.13.0/reference/arrays.indexing.html)，这一部分极其复杂，到现在每次用到的时候我也是极其头疼。看这个例子，scores用的index，rank 1是np.arange(N)，rank 2是y。这里N=500，所以np.arange(N)和y都是(500, )的vector，y的每一个值在[0, 9]之间。rank 1的500个数和rank 2的500个数两两配对，组成了500个tuple:(1, y1), (2, y2), ..., 其中y1, y2表示y的第一项、第二项的值，所以得到的矩阵是从scores的第一行取y1列的值，第二行取y2列的值，直到第500行。得到的correct_score是(500,)的vector。这里要强调的是rank 1和rank 2 index的维度一定要相等，这样才能两两配对组成一个index tuple。
+
+再来看这一行
+```python
+scores = np.maximum(0, scores - correct_score[:, np.newaxis] + 1.0)
+```
+这里用到的是numpy里的[broadcasting](https://docs.scipy.org/doc/numpy/user/basics.broadcasting.html)的概念。在学习矩阵论的时候习惯了检查维度匹配，这里突然来个broadcasting给你自动扩展匹配维度，还真的是要适应一阵。具体看这个例子：
+
+scores是(500, 10)，correct_score是(500,)，如果这里你用两者直接相减的话，python会报错提示维度不匹配。这里用np.newaxis给correct_score增加了一个rank，现在correct_score由(500, )变成了(500, 1)，现在两者再相减的话，numpy会自动将correct_score扩展为(500, 10)，多出来的数据是在axis=1上将数据复制10份，正是我们想要的。broadcasting这个概念很重要，在以后的编程中我们会遇到无数次。
+
+SVM的作业先写到这里，还有计算grad和SGD，等视频讲到了再回来补上。
