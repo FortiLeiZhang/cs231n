@@ -79,6 +79,7 @@ scores = np.maximum(0, scores - correct_score[:, np.newaxis] + 1.0)
 scores是(500, 10)，correct_score是(500,)，如果这里你用两者直接相减的话，python会报错提示维度不匹配。这里用np.newaxis给correct_score增加了一个rank，现在correct_score由(500, )变成了(500, 1)，现在两者再相减的话，numpy会自动将correct_score扩展为(500, 10)，多出来的数据是在axis=1上将数据复制10份，正是我们想要的。broadcasting这个概念很重要，在以后的编程中我们会遇到无数次。
 
 SVM的作业先写到这里，还有计算grad和SGD，等视频讲到了再回来补上。
+
 ####Softmax
 对于SVM而言，由score function得到的score仅仅相对大小是有意义的，每一项的绝对值并不表达任何意义。通过softmax function，可以将score与概率联系起来。softmax函数如下：
 $$
@@ -91,6 +92,7 @@ L_i = -\log \left(\frac{e^{s_{y_i}}}{\sum_j e^{s_j}} \right )
 $$
 
 这里解释一下为什么cross entropy可以用作loss function。
+
 #####cross entropy
 熵(entropy)是一个事件所包含的信息量，定义为:
 $$
