@@ -152,4 +152,9 @@ $\log C$
 
 此处有作业
 ---
-[Assignment 1: SVM](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/svm.ipynb)
+[Assignment 1: Softmax](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/svm.ipynb)
+
+> Inline Question 1:
+Why do we expect our loss to be close to -log(0.1)? Explain briefly.**
+
+$-\log \frac{1}{C} = -\log (0.1)$
