@@ -131,3 +131,25 @@ H(x) &= - \sum_{x\in X}p(x)\log q(x) \newline
 \end{aligned}
 $$
 此即使用softmax和cross entropy的loss function。
+##### 视频中提到的几个问题
+>  1. What is the min/max possible loss L_i?
+
+min为0，max为$+\infty$。当true class的score为 $+\infty$ 时，loss为0；当true class的score为 $-\infty$ 时，loss为$+\infty$。注意，这里的min/max都是理论上的极限值，并不能取到。
+
+> 2. At initialization all s will be approximately equal; what is the loss?
+
+$\log C$
+
+##### SVM与Softmax比较
+
+> Suppose I take a datapoint and I jiggle a bit (changing its score slightly). What happens to the loss in both cases?
+
+当true class的score已经足够大时，如果再提高一点，对loss有什么影响？对于SVM来说，loss会取到min值0，不会再改变；对于softmax而言，true class的probability会继续增大趋近于1，loss会继续减小趋近于0，其余false class的概率会继续减小趋近于0。也就是说SVM是够大就行，softmax是永不满足。这就是notes里提到的
+> In other words, the cross-entropy objective wants the predicted distribution to have all of its mass on the correct answer.
+
+另外，这里提到softmax函数会将score转换成为一个"概率"，这里的概率仅其相对大小有意义，绝对值是没有意义的。
+> Hence, the probabilities computed by the Softmax classifier are better thought of as confidences where, similar to the SVM, the ordering of the scores is interpretable, but the absolute numbers (or their differences) technically are not.
+
+此处有作业
+---
+[Assignment 1: SVM](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/svm.ipynb)
