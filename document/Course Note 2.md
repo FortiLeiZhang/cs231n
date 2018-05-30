@@ -124,9 +124,9 @@ $q(x)$ 和 $p(x)$ 的不相似度。
 接下来，要用 $q(x)$ 近似 $p(x)$，就要使两者之间的KL距离最小，等价于最小化两者之间的cross entropy。而
 $$
 \begin{aligned}
-H(x) &= - \sum_{x\in X}p(x)\log q(x) \\
-&= - \left ( 0\times \log q(x_0) + 0\times \log q(x_0) + ... + 1\times \log q(x_i) + ... \right ) \\
-&= - \log q(x_i) \\
+H(x) &= - \sum_{x\in X}p(x)\log q(x) \newline
+&= - \left ( 0\times \log q(x_0) + 0\times \log q(x_0) + ... + 1\times \log q(x_i) + ... \right ) \newline
+&= - \log q(x_i) \newline
 &= -\log \left(\frac{e^{s_{y_i}}}{\sum_j e^{s_j}} \right )
 \end{aligned}
 $$
