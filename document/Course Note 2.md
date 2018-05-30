@@ -123,11 +123,11 @@ $q(x)$ 和 $p(x)$ 的不相似度。
 再回到softmax，这里 $p(x)$ 就是ground truth lable。以CIFAR10为例，这里 $p(x_i) = [0, 0, 0, 1, ... , 0]$，即truth class为1，其余都为0。因此，这里机器学习的目标就是用一个分布 $q(x)$ 来近似这个 $p(x)$ 。这里要求 $q(x)$ 是一个概率分布，这就是要将scores通过softmax function变成一个概率密度函数的原因。
 接下来，要用 $q(x)$ 近似 $p(x)$，就要使两者之间的KL距离最小，等价于最小化两者之间的cross entropy。而
 $$
-\begin{align}
+\begin{aligned}
 H(x) &= - \sum_{x\in X}p(x)\log q(x) \\
 &= - \left ( 0\times \log q(x_0) + 0\times \log q(x_0) + ... + 1\times \log q(x_i) + ... \right ) \\
 &= - \log q(x_i) \\
 &= -\log \left(\frac{e^{s_{y_i}}}{\sum_j e^{s_j}} \right )
-\end{align}
+\end{aligned}
 $$
 此即使用softmax和cross entropy的loss function。
