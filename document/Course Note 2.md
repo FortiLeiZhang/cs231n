@@ -120,4 +120,14 @@ $q(x)$ 和 $p(x)$ 的不相似度。
 
 机器学习的过程是希望用一个模型的分布 $P(model)$ 来近似实际事件的分布 $P(real)$，但是自然界中实际事件的分布 $P(real)$ 是不可能得到的，退而求其次，我们收集该事件的大量样本，并用该样本的分布 $P(sample)$ 来代替 $P(real)$， 即 $P(sample) \cong P(real)$。从而机器学习的目的蜕化为使 $P(model)$ 与 $P(sample)$ 分布一致。 最小化  $P(model)$ 与 $P(sample)$ 的差异，等价于最小化两者的KL散度，也即最小化两者之间的cross entropy。
 
-再回到softmax，因为
+再回到softmax，这里 $p(x)$ 就是ground truth lable。以CIFAR10为例，这里 $p(x_i) = [0, 0, 0, 1, ... , 0]$，即truth class为1，其余都为0。因此，这里机器学习的目标就是用一个分布 $q(x)$ 来近似这个 $p(x)$ 。这里要求 $q(x)$ 是一个概率分布，这就是要将scores通过softmax function变成一个概率密度函数的原因。
+接下来，要用 $q(x)$ 近似 $p(x)$，就要使两者之间的KL距离最小，等价于最小化两者之间的cross entropy。而
+$$
+\begin{align}
+H(x) &= - \sum_{x\in X}p(x)\log q(x) \\
+&= - \left ( 0\times \log q(x_0) + 0\times \log q(x_0) + ... + 1\times \log q(x_i) + ... \right ) \\
+&= - \log q(x_i) \\
+&= -\log \left(\frac{e^{s_{y_i}}}{\sum_j e^{s_j}} \right )
+\end{align}
+$$
+此即使用softmax和cross entropy的loss function。
