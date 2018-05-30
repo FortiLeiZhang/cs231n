@@ -60,4 +60,4 @@ Validation
 >4. The time needed to classify a test example with the k-NN classifier grows with the size of the training set.
 >5. None of the above.
 
-1,2显然不正确；因为kNN是线性分类器，所以边界也是线性的；training set越大，在predict时需要计算test example与所有training的距离，所以在相同算力条件下，taining set越大，predict一个test sample所需时间越多，时间复杂度为O(N)。
+1,2显然不正确；因为kNN是非线性分类器，所以边界也是非线性的；training set越大，在predict时需要计算test example与所有training的距离，所以在相同算力条件下，taining set越大，predict一个test sample所需时间越多，时间复杂度为O(N)。

@@ -35,11 +35,3 @@ def load_pickle(filename):
     elif version[0] == '3':
         return pickle.load(filename, encoding='latin1')
     raise ValueError('Invalid python version: {}'.format(version))
-        
-    
-    
-    
-    
-    
-    
-    
