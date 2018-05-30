@@ -79,3 +79,35 @@ scores = np.maximum(0, scores - correct_score[:, np.newaxis] + 1.0)
 scores是(500, 10)，correct_score是(500,)，如果这里你用两者直接相减的话，python会报错提示维度不匹配。这里用np.newaxis给correct_score增加了一个rank，现在correct_score由(500, )变成了(500, 1)，现在两者再相减的话，numpy会自动将correct_score扩展为(500, 10)，多出来的数据是在axis=1上将数据复制10份，正是我们想要的。broadcasting这个概念很重要，在以后的编程中我们会遇到无数次。
 
 SVM的作业先写到这里，还有计算grad和SGD，等视频讲到了再回来补上。
+####Softmax
+对于SVM而言，由score function得到的score仅仅相对大小是有意义的，每一项的绝对值并不表达任何意义。通过softmax function，可以将score与概率联系起来。softmax函数如下：
+$$
+f(s_k) = \frac{e^{s_k}}{\sum_j{e^{s_j}}},
+$$
+就是把所有scores先e一下，然后分母是所有这些e的和，分子是某一class的e，这样，每一class的score都变成了一个大于0小于1的数，而所有class score之和等于1，这样就是一个标准的概率分布了。
+然后取softmax以后的score的cross entropy作为loss function：
+$$
+L_i = -\log \left(\frac{e^{s_{y_i}}}{\sum_j e^{s_j}} \right )
+$$
+
+这里解释一下为什么cross entropy可以用作loss function。
+#####cross entropy
+熵(entropy)是一个事件所包含的信息量，定义为:
+$$
+S(x) = -\sum_i{p(x_i)\log{p(x_i)}}.
+$$
+相对熵(relative entropy)又称为KL散度，是两个随机分布间距离大小的度量，定义为:
+$$
+D_{KL}(p||q) = E_p\left\{\log \frac{p(x)}{q(x)}\right\} = \sum_{x\in X}p(x) \log\left\{ \frac{p(x)}{q(x)}\right\} \\
+= \sum_{x\in X}p(x)\log p(x) - \sum_{x\in X}p(x)\log q(x),
+$$
+前一部分是 $p(x)$ 负熵，如果p(x)是已知的分布，这个值是定值；第二部分就是 $p(x)$ 和 $q(x)$ 之间的交叉熵(cross entropy)， 定义为:
+$$
+H(x) = - \sum_{x\in X}p(x)\log q(x)
+$$
+$D_{KL}$ 越大，表示用 $q(x)$ 来近似 $p(x)$ 的差距越大，因为第一部分为定值，也就等价于第二部分cross entropy越大， 用 $q(x)$ 来近似 $p(x)$ 的差距越大，即
+$q(x)$ 和 $p(x)$ 的不相似度。
+
+机器学习的过程是希望用一个模型的分布 $P(model)$ 来近似实际事件的分布 $P(real)$，但是自然界中实际事件的分布 $P(real)$ 是不可能得到的，退而求其次，我们收集该事件的大量样本，并用该样本的分布 $P(sample)$ 来代替 $P(real)$， 即 $P(sample) \cong P(real)$。从而机器学习的目的蜕化为使 $P(model)$ 与 $P(sample)$ 分布一致。 最小化  $P(model)$ 与 $P(sample)$ 的差异，等价于最小化两者的KL散度，也即最小化两者之间的cross entropy。
+
+再回到softmax，因为
