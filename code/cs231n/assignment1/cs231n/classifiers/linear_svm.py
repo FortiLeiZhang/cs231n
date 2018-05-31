@@ -41,10 +41,10 @@ def svm_loss_vectorized(W, X, y, reg):
 
     scores = np.maximum(0, scores - correct_score[:, np.newaxis] + 1.0)
     scores[np.arange(N), y] = 0
-    dScore = scores > 0
+    dScore = (scores > 0).astype(np.float)
     dScore[np.arange(N), y] = -np.sum(dScore, axis=1)
     
     dW = X.T.dot(dScore)
     loss = np.sum(scores) / N + reg * np.sum(W * W)
-    W = dW / N + 2 * reg * W
+    dW = dW / N + 2 * reg * W
     return loss, dW

@@ -58,6 +58,32 @@ $$
 $$
 即对Score的每一列，如果不是true class，且score>0，该位置 $\mathrm{d} Score$ 为1，否则为0；如果是true class，该位置的数值是此列不为0的个数。
 
+这里遇到个问题debug了很久才发现，代码如下:
+```python
+scores = np.maximum(0, scores - correct_score[:, np.newaxis] + 1.0)
+scores[np.arange(N), y] = 0
+dScore = (scores > 0)
+dScore[np.arange(N), y] = -np.sum(dScore, axis=1)
+print(dScore[np.arange(N), y])
+```
+结果为:
+```
+[ True  True  True ... True]
+```
+正确的应该为：
+```
+dScore = (scores > 0).astype(np.float)
+```
+结果为:
+```
+[-9. -9. -9. ... -6.]
+```
+由于这里grad check用的是grad_check_sparse，仅仅在10个点上进行抽样检查，所以在grad check时是检查不出来的，但是在最后检查naive和vecterize时，采用的是两者之差求Frobenius norm，这才会检查出来。
+
+> Inline Question 1: It is possible that once in a while a dimension in the gradcheck will not match exactly. What could such a discrepancy be caused by? Is it a reason for concern? What is a simple example in one dimension where a gradient check could fail? How would change the margin affect of the frequency of this happening? Hint: the SVM loss function is not strictly speaking differentiable
+
+问题里已经给出了提示，显然由于max函数引入的奇点，当svm取到0附近一个很小区域时，gradcheck就会不匹配。最简单的例子就是如果 $\Delta$ 为0，在初始化的时候有很大概率取到奇点附近。
+
 #### [Assignment 1: softmax grads的计算](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/softmax.ipynb)
 
 ##### 公式推导
