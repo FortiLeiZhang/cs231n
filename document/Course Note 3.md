@@ -57,3 +57,37 @@ $$
  = - \sum_{j \neq y_i}^C  \mathbb{1} \left( s_j - s_{y_i} + \Delta > 0\right)
 $$
 即对Score的每一列，如果不是true class，且score>0，该位置 $\mathrm{d} Score$ 为1，否则为0；如果是true class，该位置的数值是此列不为0的个数。
+
+#### [Assignment 1: softmax grads的计算](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/softmax.ipynb)
+
+##### 公式推导
+还是要stage到score级别，然后再用 $\mathrm{d} W = X.T.dot(\mathrm{d} Score)$来计算 $\mathrm{d} W$，这样可以在推导的时候不用考虑如何计算对两个矩阵相乘。
+$$
+L_i = - \log \left( \ p_{y_i} \right) = -\log \left(\frac{e^{s_{y_i}}}{\sum_j e^{s_j}} \right )
+$$
+
+$L_i$ 对任意 $s_k$ 求导：
+$$
+\begin{aligned}
+\mathrm{d} s_k =& \frac{\partial L_i}{\partial s_k} = - \frac{\partial}{\partial s_k} \left( \log \left(\frac{e^{s_{y_i}}}{\sum_j e^{s_j}} \right ) \right) \newline
+=& - \frac{\sum_j e^{s_j}}{e^{s_{y_i}}} \cdot \frac{\left( {e^{s_{y_i}}}\right)^{'} \cdot {\sum_j e^{s_j}} - {e^{s_{y_i}}} \cdot \left( {\sum_j e^{s_j}} \right)^{'}}{\left( {\sum_j e^{s_j}}\right)^2} \newline
+=&\frac{\frac{\partial}{\partial s_k}\left( {\sum_j e^{s_j}} \right)}{{\sum_j e^{s_j}}} - \frac{ \frac{\partial }{\partial s_k} \left({e^{s_{y_i}}} \right)}{{e^{s_{y_i}}}} \newline
+=&\frac{\frac{\partial}{\partial s_k}\left( e^{s_0} + e^{s_1} + e^{s_{y_i}} + ... \right)}{{\sum_j e^{s_j}}} - \frac{ \frac{\partial }{\partial s_k} \left({e^{s_{y_i}}} \right)}{{e^{s_{y_i}}}}
+\end{aligned}
+$$
+当 $y_i = k$时：
+$$
+\mathrm{d} s_k = \frac{{e^{s_{y_i}}}}{{\sum_j e^{s_j}}} - 1
+$$
+当 $y_i \neq k$时：
+$$
+\mathrm{d} s_k = \frac{{e^{s_k}}}{{\sum_j e^{s_j}}}
+$$
+综上，
+$$
+\mathrm{d} s_k = \frac{{e^{s_k}}}{{\sum_j e^{s_j}}} - \mathbb{1} \left( y_i = k \right)
+$$
+
+##### [代码实现](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/cs231n/classifiers/softmax.py)
+
+###### softmax_naive
