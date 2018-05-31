@@ -10,7 +10,7 @@
 
 $$
 \begin{aligned}
-L_i = & \sum_{j \neq y_i} \max\left( 0, w_j x_i - w_{y_i} x_i + \Delta \right) \newline
+L_i = & \sum_{j \neq y_i}^C \max\left( 0, w_j x_i - w_{y_i} x_i + \Delta \right) \newline
 = & \max\left( 0, w_0 x_i - w_{y_i} x_i + \Delta \right) + \max\left( 0, w_1 x_i - w_{y_i} x_i + \Delta \right)  + ... + \max\left( 0, w_j x_j - w_{y_i} x_i + \Delta \right) + ...
 \end{aligned}
 $$
@@ -18,7 +18,7 @@ $$
 $L_i$ 对 $w_j$ 求导：
 
 $$
-\frac{\partial L_i}{\partial w_j} = 0 + 0 + ... +
+\mathrm{d}w_j =  \frac{\partial L_i}{\partial w_j} = 0 + 0 + ... +
  \mathbb{1} \left( w_j x_i - w_{y_i} x_i + \Delta > 0\right) \cdot x_i
 $$
 
@@ -26,11 +26,34 @@ $L_i$ 对 $w_{y_i}$ 求导：
 
 $$
 \begin{aligned}
-\frac{\partial L_i}{\partial w_{y_i}} =&
+\mathrm{d}w_{y_i} = \frac{\partial L_i}{\partial w_{y_i}} =&
 \mathbb{1} \left( w_0 x_i - w_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) +
  \mathbb{1} \left( w_1 x_i - w_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) + ... + \mathbb{1} \left( w_j x_i - w_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) + ... \newline
- =& - \left(  \sum_{j \neq y_i}  \mathbb{1} \left( w_j x_i - w_{y_i} x_i + \Delta > 0\right) \right) \cdot x_i
+ =& - \left(  \sum_{j \neq y_i}^C  \mathbb{1} \left( w_j x_i - w_{y_i} x_i + \Delta > 0\right) \right) \cdot x_i
  \end{aligned}
 $$
 
-##### 代码实现
+##### [代码实现](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/cs231n/classifiers/linear_svm.py)
+
+###### svm_naive
+
+$\mathrm{d}W$ 必定与 $W$ 有同样的shape，这一点是今后计算grad必须要首先确定的。在这里，$\mathrm{d}W$的shape是(3073, 10)。接下来看 $L$ 的下标是 $i \in [0, N)$，即是N个sample之一，$w$ 的下标是 $j \in [0, C)$，即10个class之一。如果此列对应的不是true class，并且score大于0，就把这个sample的$x_i$加到 $\mathrm{d}W$ 的此列；如果此列对应的是true class，要计算其余9个class中，有几个的score大于0，然后与这个sample的$x_i$相乘，放到 $\mathrm{d}W$ 对应列。如此遍历N个sample结束。
+
+###### svm_vectorize
+这里介绍非常重要的维数分析法，该方法可大大简化vectorize的分析过程，而且不易出错。首先score是X和W的函数，即：
+$$
+Score = X.dot(W)
+$$
+所以，$\mathrm{d}W$必定是由 $\mathrm{d} Score$ 和X计算得出。这里X是(N, 3073)，W是(3073, 10)，所以Score是(N, 10)，而 $\mathrm{d} Score$ 必定与Score的shape相同，所以 $\mathrm{d} Score$ 也是(N, 10)，这样，根据矩阵相乘的维数限制，可以得到
+$$
+\mathrm{d} W = X.T.dot(\mathrm{d} Score)。
+$$
+由公式推导可以得到 $\mathrm{d} Score$：
+$$
+\mathrm{d}s_j = \mathbb{1} \left( s_j - s_{y_i} + \Delta > 0\right)
+$$
+$$
+\mathrm{d}s_{y_i}
+ = - \sum_{j \neq y_i}^C  \mathbb{1} \left( s_j - s_{y_i} + \Delta > 0\right)
+$$
+即对Score的每一列，如果不是true class，且score>0，该位置 $\mathrm{d} Score$ 为1，否则为0；如果是true class，该位置的数值是此列不为0的个数。
