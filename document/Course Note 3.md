@@ -6,6 +6,8 @@
 
 ##### 公式推导
 
+对一个sample $x_i$，svm的loss为：
+
 $$
 \begin{aligned}
 L_i = & \sum_{j \neq y_i} \left [ \max\left( 0, \omega_j x_i - \omega_{y_i} x_i + \Delta \right)  \right] \newline
