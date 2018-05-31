@@ -117,3 +117,12 @@ $$
 ##### [代码实现](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/cs231n/classifiers/softmax.py)
 
 ###### softmax_naive
+###### softmax_vectorize
+有了上面的公式推导和svm的经验，这里的代码不难写。注意，我们这里都是先去计算 $\mathrm{d} Score$, 然后再用 $\mathrm{d} W = X.T.dot(\mathrm{d} Score)$ 来计算。
+
+#### [Assignment 1: SVM Stochastic Gradient Descent ](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/svm.ipynb)
+这里没什么好说的。
+> Inline question 2:
+Describe what your visualized SVM weights look like, and offer a brief explanation for why they look they way that they do.
+
+每一组weights都是一个class的template。

@@ -38,7 +38,6 @@ def svm_loss_vectorized(W, X, y, reg):
     
     scores = X.dot(W)
     correct_score = scores[np.arange(N), y]
-
     scores = np.maximum(0, scores - correct_score[:, np.newaxis] + 1.0)
     scores[np.arange(N), y] = 0
     dScore = (scores > 0).astype(np.float)
