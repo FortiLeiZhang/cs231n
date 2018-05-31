@@ -10,26 +10,26 @@
 
 $$
 \begin{aligned}
-L_i = & \sum_{j \neq y_i} \max\left( 0, \omega_j x_i - \omega_{y_i} x_i + \Delta \right) \newline
-= & \max\left( 0, \omega_0 x_i - \omega_{y_i} x_i + \Delta \right) + \max\left( 0, \omega_1 x_i - \omega_{y_i} x_i + \Delta \right)  + ... + \max\left( 0, \omega_j x_j - \omega_{y_i} x_i + \Delta \right) + ...
+L_i = & \sum_{j \neq y_i} \max\left( 0, w_j x_i - w_{y_i} x_i + \Delta \right) \newline
+= & \max\left( 0, w_0 x_i - w_{y_i} x_i + \Delta \right) + \max\left( 0, w_1 x_i - w_{y_i} x_i + \Delta \right)  + ... + \max\left( 0, w_j x_j - w_{y_i} x_i + \Delta \right) + ...
 \end{aligned}
 $$
 
-$L_i$ 对 $\omega_j$ 求导：
+$L_i$ 对 $w_j$ 求导：
 
 $$
-\frac{\partial L_i}{\partial \omega_j} = 0 + 0 + ... +
- \mathbb{1} \left( \omega_j x_i - \omega_{y_i} x_i + \Delta > 0\right) \cdot x_i
+\frac{\partial L_i}{\partial w_j} = 0 + 0 + ... +
+ \mathbb{1} \left( w_j x_i - w_{y_i} x_i + \Delta > 0\right) \cdot x_i
 $$
 
-$L_i$ 对 $\omega_{y_i}$ 求导：
+$L_i$ 对 $w_{y_i}$ 求导：
 
 $$
 \begin{aligned}
-\frac{\partial L_i}{\partial \omega_{y_i}} =&
-\mathbb{1} \left( \omega_0 x_i - \omega_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) +
- \mathbb{1} \left( \omega_1 x_i - \omega_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) + ... + \mathbb{1} \left( \omega_j x_i - \omega_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) + ... \newline
- =& - \left(  \sum_{j \neq y_i}  \mathbb{1} \left( \omega_j x_i - \omega_{y_i} x_i + \Delta > 0\right) \right) \cdot x_i
+\frac{\partial L_i}{\partial w_{y_i}} =&
+\mathbb{1} \left( w_0 x_i - w_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) +
+ \mathbb{1} \left( w_1 x_i - w_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) + ... + \mathbb{1} \left( w_j x_i - w_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) + ... \newline
+ =& - \left(  \sum_{j \neq y_i}  \mathbb{1} \left( w_j x_i - w_{y_i} x_i + \Delta > 0\right) \right) \cdot x_i
  \end{aligned}
 $$
 

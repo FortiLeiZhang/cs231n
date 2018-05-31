@@ -2,11 +2,12 @@ import numpy as np
 from random import shuffle
 
 def svm_loss_naive(W, X, y, reg):
-    loss, grad = None, None
+    loss, dW = None, None
     # X: (N, 3073)
     # W: (3073, 10)
     N = X.shape[0]
     C = W.shape[1]
+    dW = np.zeros_like(W)
     scores = X.dot(W)
 
     for i in range(N):
@@ -23,7 +24,7 @@ def svm_loss_naive(W, X, y, reg):
     
     loss = np.sum(scores) / N + reg * np.sum(W * W)
 
-    return loss, grad
+    return loss, dW
 
 def svm_loss_vectorized(W, X, y, reg):
     loss, grad = None, None
