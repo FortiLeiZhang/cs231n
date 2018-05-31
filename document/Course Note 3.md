@@ -126,3 +126,10 @@ $$
 Describe what your visualized SVM weights look like, and offer a brief explanation for why they look they way that they do.
 
 每一组weights都是一个class的template。
+
+#### [Assignment 1: Softmax ](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/softmax.ipynb)
+
+> Inline Question - True or False
+It's possible to add a new datapoint to a training set that would leave the SVM loss unchanged, but this is not the case with the Softmax classifier loss.
+
+可以的。因为svm是够大就行，而softmax是永不满足。
