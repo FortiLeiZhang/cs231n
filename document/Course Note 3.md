@@ -8,10 +8,10 @@
 
 $$
 \begin{aligned}
-L_i =& \sum_{j \neq y_i} \left [ \max\left( 0, \omega_j x_i - \omega_{y_i} x_i + \Delta \right)  \right] \newline
-=& \max\left( 0, \omega_0 x_i - \omega_{y_i} x_i + \Delta \right)
+L_i = & \sum_{j \neq y_i} \left [ \max\left( 0, \omega_j x_i - \omega_{y_i} x_i + \Delta \right)  \right] \newline
+= & \max\left( 0, \omega_0 x_i - \omega_{y_i} x_i + \Delta \right)
    + \max\left( 0, \omega_1 x_i - \omega_{y_i} x_i + \Delta \right)
-   + ... + \max\left( 0, \omega_j x_j - \omega_{y_i} x_i + \Delta \right) + ... \newline
+   + ... + \max\left( 0, \omega_j x_j - \omega_{y_i} x_i + \Delta \right) + ...
 \end{aligned}
 $$
 
