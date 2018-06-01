@@ -1,5 +1,5 @@
 [Linear classification: Support Vector Machine, Softmax](http://cs231n.github.io/linear-classify/)
-
+=====
 Linear Classification
 ---
 实现image classification更常用的方法是采用score function + loss function。其中，score function将raw data映射为class score；而loss function衡量所得到的的class score与已知的ground truth差别有多大。所有的NN和CNN问题实际上都是围绕这两个function进行的。
