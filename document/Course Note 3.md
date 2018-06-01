@@ -26,7 +26,7 @@ $L_i$ 对 $w_{y_i}$ 求导：
 
 $$
 \begin{aligned}
-\mathrm{d}w_{y_i} = \frac{\partial L_i}{\partial w_{y_i}} =&
+\mathrm{d}w_{y_i} =& \frac{\partial L_i}{\partial w_{y_i}} =
 \mathbb{1} \left( w_0 x_i - w_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) +
  ... + \mathbb{1} \left( w_j x_i - w_{y_i} x_i + \Delta > 0\right) \cdot (-x_i) + ... \newline
  =& - \left(  \sum_{j \neq y_i}^C  \mathbb{1} \left( w_j x_i - w_{y_i} x_i + \Delta > 0\right) \right) \cdot x_i
@@ -134,7 +134,7 @@ It's possible to add a new datapoint to a training set that would leave the SVM 
 
 可以的。因为svm是够大就行，而softmax是永不满足。
 
-#### [Assignment 1: Features](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/features.ipynb)
+#### [Assignment 1: Train SVM on features](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/features.ipynb)
 这一部分没什么可说的。
 >Inline question 1:
 Describe the misclassification results that you see. Do they make sense?
