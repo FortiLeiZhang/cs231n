@@ -11,7 +11,7 @@
 $$
 \begin{aligned}
 L_i = & \sum_{j \neq y_i}^C \max\left( 0, w_j x_i - w_{y_i} x_i + \Delta \right) \newline
-= & \max\left( 0, w_0 x_i - w_{y_i} x_i + \Delta \right) + \max\left( 0, w_1 x_i - w_{y_i} x_i + \Delta \right)  + ... + \max\left( 0, w_j x_j - w_{y_i} x_i + \Delta \right) + ...
+= & \max\left( 0, w_0 x_i - w_{y_i} x_i + \Delta \right) + ... + \max\left( 0, w_j x_j - w_{y_i} x_i + \Delta \right) + ...
 \end{aligned}
 $$
 
@@ -133,3 +133,10 @@ Describe what your visualized SVM weights look like, and offer a brief explanati
 It's possible to add a new datapoint to a training set that would leave the SVM loss unchanged, but this is not the case with the Softmax classifier loss.
 
 可以的。因为svm是够大就行，而softmax是永不满足。
+
+#### [Assignment 1: Features]()
+这一部分没什么可说的。
+>Inline question 1:
+Describe the misclassification results that you see. Do they make sense?
+
+观察这些分类错误的情况，我们可以看到它们和正确的class在颜色、外形上有很多的相似之处。
