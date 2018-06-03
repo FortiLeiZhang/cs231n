@@ -158,6 +158,7 @@ grads['b2'] = np.sum(Dscores, axis=0)
 这里用 **维度分析** 更好解释，正因为 $\mathrm{d} y$ 为(N, C)，而b (1, C)只能与 $\mathrm{d} y$ 有关，所以只能沿着axis=0相加得到。详细的推导摆在这里，以后再遇到按 **维度分析** 的方式直接用就行了。
 
 ##### $\mathrm{d} W$的推导
+
 同样以 $\mathrm{d} w_{11}$ 为例
 $$
 \mathrm{d} w_{11} = \frac{\partial \mathrm{Loss}}{\partial w_{11}} = \frac{\partial \mathrm{Loss}}{\partial y} \cdot \frac{\partial y}{\partial w_{11}} = \sum_i \sum_j \frac{\partial \mathrm{Loss}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial w_{11}}
@@ -168,22 +169,17 @@ $$
 $$
 推广到一般，可得：
 $$
-\mathrm{d} w  =
-\begin{bmatrix}
+\mathrm{d} w  = \begin{bmatrix}
 \mathrm{d} w_{11}&   \mathrm{d} w_{12}&  ... &  \mathrm{d} w_{1c} \newline
 \mathrm{d} w_{21}&   \mathrm{d} w_{22}&  ... &  \mathrm{d} w_{2c} \newline
      & ...      &  ... & \newline
  \mathrm{d} w_{d1}&   \mathrm{d} w_{d2}& ... &  \mathrm{d} w_{dc}
-\end{bmatrix}
-=
-\begin{bmatrix}
+\end{bmatrix} = \begin{bmatrix}
  x_{11}&   x_{12}&  ... &  x_{1d}\newline
  x_{21}&   x_{22}&  ... &  x_{2d}\newline
       & ...      &  ... & \newline
   x_{n1}&   x_{n2}& ... &  x_{nd}
-\end{bmatrix}^{T}
-*
-\begin{bmatrix}
+\end{bmatrix}^{T} * \begin{bmatrix}
  \mathrm{d} y_{11}&   \mathrm{d} y_{12}&  ... &  \mathrm{d} y_{1c} \newline
  \mathrm{d} y_{21}&   \mathrm{d} y_{22}&  ... &  \mathrm{d} y_{2c}\newline
       & ...      &  ... & \newline
@@ -194,7 +190,9 @@ $$
 ```python
 grads['W2'] = relu_out.T.dot(Dscores) + 2 * reg * W2
 ```
+
 ##### $\mathrm{d} X$的推导
+
 既然写了，就把它写全吧。
 $$
 \mathrm{d} x_{11} = \frac{\partial \mathrm{Loss}}{\partial x_{11}} = \frac{\partial \mathrm{Loss}}{\partial y} \cdot \frac{\partial y}{\partial x_{11}} = \sum_i \sum_j \frac{\partial \mathrm{Loss}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial x_{11}}
