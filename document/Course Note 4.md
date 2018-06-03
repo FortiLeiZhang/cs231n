@@ -40,3 +40,119 @@ $$
 
 此处有作业
 ---
+#### [Assignment 1: two_layer_net ](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/two_layer_net.ipynb)
+难点在于grads的计算，这里详细的把推导过程写写，然后总结出一套简单的算法，以后再用时直接用这套算法就行，省得再去想一遍推导过程。代码在[neural_network](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/cs231n/classifiers/neural_net.py)里。
+
+这个两层的NN是先经过(W1, b1)，然后ReLU一下，在经过(W2, b2)得到score，然后score再经过softmax，得到最后的Loss。它的forward很简单：
+```python
+layer1_out = X.dot(W1) + b1
+relu_out = np.maximum(0, layer1_out)
+scores = relu_out.dot(W2) + b2
+```
+得到score后，再经过softmax得到Loss：
+```python
+stable_scores = scores - np.max(scores, axis=1, keepdims=True)
+correct_score = stable_scores[np.arange(N), y]
+
+loss = -np.sum(np.log(np.exp(correct_score) / np.sum(np.exp(stable_scores), axis=1)))
+loss = loss/N + reg * np.sum(W1 * W1) + reg * np.sum(W2 * W2)
+```
+下一步就是计算对W1, b1, W2, b2的grad了。
+
+首先一定要牢记的是，上来不要妄图直接计算 $\mathrm{d} W$ 或者是 $\mathrm{d} b$，一定要先从XW+b的结果score下手。所以，这里先算Loss对score的grad，在softmax一节已经详细讲过了:
+```python
+Dscores = np.exp(stable_scores) / np.sum(np.exp(stable_scores), axis=1, keepdims=True)
+Dscores[np.arange(N), y] -= 1
+Dscores = Dscores / N
+```
+需要注意的一个细节是最后一步的除以N，在这里除了的话，后面可以不用再除，以防后面计算的时候忘记。然后就要计算 $\mathrm{d} W2$ 和 $\mathrm{d} b2$。这里详细的讲一下Y = XW+b如何算grads。
+##### Y = X.dot(W) + b梯度的计算
+首先这里的已知量是(X, W, b, Y, dY = $\frac{\partial \mathrm{Loss}}{\partial y}$)，要求出 $d\mathrm{W}$ 和 $\mathrm{d} b$。其中
+
+y (N, C)形如：
+$$
+\begin{bmatrix}
+ y_{11}&   y_{12}&  ... &  y_{1c}\\
+ y_{21}&   y_{22}&  ... &  y_{2c}\\
+      & ...      &  ... & \\
+  y_{n1}&   y_{n2}& ... &  y_{nc}
+\end{bmatrix}
+$$
+X (N, D)形如：
+$$
+\begin{bmatrix}
+ x_{11}&   x_{12}&  ... &  x_{1d}\\
+ x_{21}&   x_{22}&  ... &  x_{2d}\\
+      & ...      &  ... & \\
+  x_{n1}&   x_{n2}& ... &  x_{nd}
+\end{bmatrix}
+$$
+W (D, C)形如
+$$
+\begin{bmatrix}
+w_{11}&   w_{12}&  ... &  w_{1c}\\
+w_{21}&   w_{22}&  ... &  w_{2c}\\
+     & ...      &  ... & \\
+ w_{d1}&   w_{d2}& ... &  w_{dc}
+\end{bmatrix}
+$$
+b (1, C)形如：
+$$
+[b_1, b_2, ... , b_c]
+$$
+dY (N, C) 形如：
+$$
+\begin{bmatrix}
+ \mathrm{d} y_{11}&   \mathrm{d} y_{12}&  ... &  \mathrm{d} y_{1c}\\
+ \mathrm{d} y_{21}&   \mathrm{d} y_{22}&  ... &  \mathrm{d} y_{2c}\\
+      & ...      &  ... & \\
+  \mathrm{d} y_{n1}&   \mathrm{d} y_{n2}& ... &  \mathrm{d} y_{nc}
+\end{bmatrix}
+$$
+Y = X.dot(W) + b形如：
+$$
+\begin{bmatrix}
+ y_{11}&   y_{12}&  ... &  y_{1c}\\
+ y_{21}&   y_{22}&  ... &  y_{2c}\\
+      & ...      &  ... & \\
+  y_{n1}&   y_{n2}& ... &  y_{nc}
+\end{bmatrix} =
+\begin{bmatrix}
+ x_{11}&   x_{12}&  ... &  x_{1d}\\
+ x_{21}&   x_{22}&  ... &  x_{2d}\\
+      & ...      &  ... & \\
+  x_{n1}&   x_{n2}& ... &  x_{nd}
+\end{bmatrix} *
+\begin{bmatrix}
+w_{11}&   w_{12}&  ... &  w_{1c}\\
+w_{21}&   w_{22}&  ... &  w_{2c}\\
+     & ...      &  ... & \\
+ w_{d1}&   w_{d2}& ... &  w_{dc}
+\end{bmatrix} +
+[b_1, b_2, ... , b_c]
+$$
+首先求 $\mathrm{d} b$ 的第一项 $\mathrm{d} b_1$：
+$$
+\mathrm{d} b_1 = \frac{\partial \mathrm{Loss}}{\partial b_1} = \frac{\partial \mathrm{Loss}}{\partial y} \cdot \frac{\partial \mathrm{y}}{\partial b_1} = \sum_i \sum_j \frac{\partial \mathrm{Loss}}{\partial y_{ij}} \cdot \frac{\partial \mathrm{y_{ij}}}{\partial b_1}
+$$
+还记得视频中板书的那个公式么，这里用到了。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+end
