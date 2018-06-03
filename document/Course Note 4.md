@@ -72,27 +72,27 @@ Dscores = Dscores / N
 y (N, C)形如：
 $$
 \begin{bmatrix}
- y_{11}&   y_{12}&  ... &  y_{1c}\\
- y_{21}&   y_{22}&  ... &  y_{2c}\\
-      & ...      &  ... & \\
+ y_{11}&   y_{12}&  ... &  y_{1c}\newline
+ y_{21}&   y_{22}&  ... &  y_{2c}\newline
+      & ...      &  ... & \newline
   y_{n1}&   y_{n2}& ... &  y_{nc}
 \end{bmatrix}
 $$
 X (N, D)形如：
 $$
 \begin{bmatrix}
- x_{11}&   x_{12}&  ... &  x_{1d}\\
- x_{21}&   x_{22}&  ... &  x_{2d}\\
-      & ...      &  ... & \\
+ x_{11}&   x_{12}&  ... &  x_{1d}\newline
+ x_{21}&   x_{22}&  ... &  x_{2d}\newline
+      & ...      &  ... & \newline
   x_{n1}&   x_{n2}& ... &  x_{nd}
 \end{bmatrix}
 $$
 W (D, C)形如
 $$
 \begin{bmatrix}
-w_{11}&   w_{12}&  ... &  w_{1c}\\
-w_{21}&   w_{22}&  ... &  w_{2c}\\
-     & ...      &  ... & \\
+w_{11}&   w_{12}&  ... &  w_{1c}\newline
+w_{21}&   w_{22}&  ... &  w_{2c}\newline
+     & ...      &  ... & \newline
  w_{d1}&   w_{d2}& ... &  w_{dc}
 \end{bmatrix}
 $$
@@ -103,30 +103,30 @@ $$
 dY (N, C) 形如：
 $$
 \begin{bmatrix}
- \mathrm{d} y_{11}&   \mathrm{d} y_{12}&  ... &  \mathrm{d} y_{1c}\\
- \mathrm{d} y_{21}&   \mathrm{d} y_{22}&  ... &  \mathrm{d} y_{2c}\\
-      & ...      &  ... & \\
+ \mathrm{d} y_{11}&   \mathrm{d} y_{12}&  ... &  \mathrm{d} y_{1c} \newline
+ \mathrm{d} y_{21}&   \mathrm{d} y_{22}&  ... &  \mathrm{d} y_{2c}\newline
+      & ...      &  ... & \newline
   \mathrm{d} y_{n1}&   \mathrm{d} y_{n2}& ... &  \mathrm{d} y_{nc}
 \end{bmatrix}
 $$
 Y = X.dot(W) + b形如：
 $$
 \begin{bmatrix}
- y_{11}&   y_{12}&  ... &  y_{1c}\\
- y_{21}&   y_{22}&  ... &  y_{2c}\\
-      & ...      &  ... & \\
+ y_{11}&   y_{12}&  ... &  y_{1c}\newline
+ y_{21}&   y_{22}&  ... &  y_{2c}\newline
+      & ...      &  ... & \newline
   y_{n1}&   y_{n2}& ... &  y_{nc}
 \end{bmatrix} =
 \begin{bmatrix}
- x_{11}&   x_{12}&  ... &  x_{1d}\\
- x_{21}&   x_{22}&  ... &  x_{2d}\\
-      & ...      &  ... & \\
+ x_{11}&   x_{12}&  ... &  x_{1d}\newline
+ x_{21}&   x_{22}&  ... &  x_{2d}\newline
+      & ...      &  ... & \newline
   x_{n1}&   x_{n2}& ... &  x_{nd}
 \end{bmatrix} *
 \begin{bmatrix}
-w_{11}&   w_{12}&  ... &  w_{1c}\\
-w_{21}&   w_{22}&  ... &  w_{2c}\\
-     & ...      &  ... & \\
+w_{11}&   w_{12}&  ... &  w_{1c}\newline
+w_{21}&   w_{22}&  ... &  w_{2c}\newline
+     & ...      &  ... & \newline
  w_{d1}&   w_{d2}& ... &  w_{dc}
 \end{bmatrix} +
 [b_1, b_2, ... , b_c]
