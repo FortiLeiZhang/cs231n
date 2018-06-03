@@ -224,9 +224,29 @@ $$
 ```python
 Drelu_out = Dscores.dot(W2.T)
 ```
+#### 一些小的细节
 
-
-
+##### ReLU梯度的计算
+```python
+Dlayer1_out = Drelu_out * (layer1_out > 0)
+```
+##### grad_check函数
+```python
+for param_name in grads:
+    f = lambda W: net.loss(X, y, reg=0.05)[0]
+    param_grad_num = eval_numerical_gradient(f, net.params[param_name], verbose=False)
+```
+这里注意lambda函数最后的那个 **[0]**
+```python
+    f = lambda W: net.loss(X, y, reg=0.05)[0]
+```
+因为net.loss函数的返回值是两个：
+```python
+def loss(self, X, y=None, reg=0.0):
+  ...
+  return loss, grads
+```
+这个[0]表示在计算f(x)的时候，只考虑返回值的第一个，即loss。
 
 
 
