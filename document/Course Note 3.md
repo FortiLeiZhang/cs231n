@@ -2,6 +2,8 @@
 =====
 这一节主要讲optimization的相关内容。重点在于各种grads的实现，特别是与矩阵相关的grads的实现，包括公式推导和代码实现。note 3中先给出了svm的grads，以后还会遇到softmax，conv，relu，BN等等各种grads。将会结合作业详细的给出各种grads的公式推导和代码实现。
 
+此处有作业
+---
 #### [Assignment 1: SVM grads的计算](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment1/svm.ipynb)
 
 ##### 公式推导

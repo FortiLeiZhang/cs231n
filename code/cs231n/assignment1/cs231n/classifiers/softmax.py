@@ -32,16 +32,17 @@ def softmax_loss_vectorized(W, X, y, reg):
     C = W.shape[1]
     
     scores = X.dot(W)
-    dScores = np.zeros_like(scores)
+    Dscores = np.zeros_like(scores)
     stable_scores = scores - np.max(scores, axis=1, keepdims=True)
-    stable_scores = np.exp(stable_scores)
-    dScores = stable_scores / np.sum(stable_scores, axis=1, keepdims=True)
-    dScores[np.arange(N), y] -= 1
-    
     correct_score = stable_scores[np.arange(N), y]
-
-    loss = -np.sum(np.log(correct_score/np.sum(stable_scores, axis=1)))
+    
+    loss = -np.sum(np.log(np.exp(correct_score) / np.sum(np.exp(stable_scores), axis=1)))
     loss = loss/N + reg*np.sum(W*W)
-    dW = X.T.dot(dScores)
-    dW = dW/N + 2*reg*W        
+    
+    Dscores = np.exp(stable_scores) / np.sum(np.exp(stable_scores), axis=1, keepdims=True)
+    Dscores[np.arange(N), y] -= 1
+    Dscores = Dscores / N
+
+    dW = X.T.dot(Dscores)
+    dW = dW + 2*reg*W
     return loss, dW

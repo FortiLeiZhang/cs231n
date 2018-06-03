@@ -37,3 +37,6 @@ $$
 \frac{\partial f}{\partial X} = \sum_i \frac{\partial f}{\partial q_i} \cdot \frac{\partial q_i}{\partial X}，
 $$
 这里要注意的是写代码时np.sum()要对哪个axis进行。
+
+此处有作业
+---
