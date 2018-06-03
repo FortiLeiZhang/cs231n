@@ -203,21 +203,17 @@ $$
 $$
 推广到一般：
 $$
-\mathrm{d} x  =
-\begin{bmatrix}
+\mathrm{d} x  = \begin{bmatrix}
 \mathrm{d} x_{11}&   \mathrm{d} x_{12}&  ... &  \mathrm{d} x_{1c} \newline
 \mathrm{d} x_{21}&   \mathrm{d} x_{22}&  ... &  \mathrm{d} x_{2c} \newline
      & ...      &  ... & \newline
  \mathrm{d} x_{d1}&   \mathrm{d} x_{d2}& ... &  \mathrm{d} x_{dc}
-\end{bmatrix}
-=
-\begin{bmatrix}
+\end{bmatrix} = \begin{bmatrix}
  \mathrm{d} y_{11}&   \mathrm{d} y_{12}&  ... &  \mathrm{d} y_{1c} \newline
  \mathrm{d} y_{21}&   \mathrm{d} y_{22}&  ... &  \mathrm{d} y_{2c}\newline
       & ...      &  ... & \newline
   \mathrm{d} y_{n1}&   \mathrm{d} y_{n2}& ... &  \mathrm{d} y_{nc}
-\end{bmatrix} *
-\begin{bmatrix}
+\end{bmatrix} * \begin{bmatrix}
 w_{11}&   w_{12}&  ... &  w_{1c}\newline
 w_{21}&   w_{22}&  ... &  w_{2c}\newline
      & ...      &  ... & \newline
