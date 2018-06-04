@@ -248,6 +248,19 @@ def loss(self, X, y=None, reg=0.0):
 ```
 这个[0]表示在计算f(x)的时候，只考虑返回值的第一个，即loss。
 
+> Inline Question
+>
+> Now that you have trained a Neural Network classifier, you may find that your testing accuracy is much lower than the training accuracy. In what ways can we decrease this gap? Select all that apply.
+>
+>Train on a larger dataset.
+>
+>Add more hidden units.
+>
+>Increase the regularization strength.
+>
+> None of the above.
+
+增加dataset通常来讲可以；增加hidden可能会行，但不一定，因为反而会更加overfit；增大reg strength也可以减小overfit。上述所有措施都是可能，但不能保证一定行。
 
 
 

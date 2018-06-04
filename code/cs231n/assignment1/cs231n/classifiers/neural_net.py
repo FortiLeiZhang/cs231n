@@ -45,4 +45,56 @@ class TwoLayerNet(object):
         grads['W1'] = X.T.dot(Dlayer1_out) + 2 * reg * W1  
         
         return loss, grads
+    
+    def train(self, X, y, X_val, y_val, 
+              learning_rate=1e-3, learning_rate_decay=0.95, reg=5e-6, 
+              num_iters=100, batch_size=200, verbose=True):   
+        
+        num_sample = X.shape[0]
+        iter_per_apoch = max(num_sample // batch_size, 1)
+        
+        loss_his = []
+        train_acc_his = []
+        val_acc_his = []
+        
+        for i in range(num_iters):
+            X_batch, y_batch = None, None
+            idx = np.random.choice(num_sample, batch_size)
+            X_batch = X[idx]
+            y_batch = y[idx]
+
+            loss, grads = self.loss(X_batch, y_batch, reg)
+            loss_his.append(loss)
+            for param_name in self.params:
+                self.params[param_name] -= learning_rate * grads[param_name]
+            
+            if verbose and i % 100 == 0:
+                print('iteration %d / %d: loss %f' % (i, num_iters, loss))
+                
+            if i % iter_per_apoch == 0:
+                train_acc = np.mean(self.predict(X_batch) == y_batch)
+                val_acc = np.mean(self.predict(X_val) == y_val)
+                train_acc_his.append(train_acc)
+                val_acc_his.append(val_acc)
+                
+                learning_rate = learning_rate * learning_rate_decay
+            
+        return {
+            'loss_his': loss_his,
+            'train_acc_his': train_acc_his,
+            'val_acc_his': val_acc_his,
+        }
+
+    def predict(self, X):
+        y_pred = np.argmax(self.loss(X), axis=1)
+        return y_pred
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
