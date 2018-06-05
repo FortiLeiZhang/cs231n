@@ -67,7 +67,7 @@ Dscores = Dscores / N
 ```
 需要注意的一个细节是最后一步的除以N，在这里除了的话，后面可以不用再除，以防后面计算的时候忘记。然后就要计算 $\mathrm{d} W2$ 和 $\mathrm{d} b2$。这里详细的讲一下Y = XW+b如何算grads。
 #### Y = X.dot(W) + b梯度的计算
-首先这里的已知量是(X, W, b, Y, dY = $\frac{\partial \mathrm{Loss}}{\partial y}$)，要求出 $d\mathrm{W}$ 和 $\mathrm{d} b$。其中
+首先这里的已知量是(X, W, b, Y, dY = $\frac{\partial \mathrm{L}}{\partial y}$)，要求出 $d\mathrm{W}$ 和 $\mathrm{d} b$。其中
 
 y (N, C)形如：
 $$
@@ -135,7 +135,7 @@ $$
 ##### $\mathrm{d} b$的推导
 首先求 $\mathrm{d} b$ 的第一项 $\mathrm{d} b_1$：
 $$
-\mathrm{d} b_1 = \frac{\partial \mathrm{Loss}}{\partial b_1} = \frac{\partial \mathrm{Loss}}{\partial y} \cdot \frac{\partial y}{\partial b_1} = \sum_i \sum_j \frac{\partial \mathrm{Loss}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial b_1}
+\mathrm{d} b_1 = \frac{\partial \mathrm{L}}{\partial b_1} = \frac{\partial \mathrm{L}}{\partial y} \cdot \frac{\partial y}{\partial b_1} = \sum_i \sum_j \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial b_1}
 $$
 还记得视频中板书的那个公式么，在这里用到了。
 将 $y_{ij}$ 展开：
@@ -149,7 +149,7 @@ y_{ij} &= x_{i1}w_{1j} + x_{i2}w_{2j} + ... + x_{id}w_{dj} + b_j
 $$
 由此可以看出，$b_1$仅与 $y_{i1}$ 有关，同样，$b_j$仅与 $y_{ij}$ 有关，并且 $\frac{\partial y_{ij}}{\partial b_j} = 1$ 那么：
 $$
-\mathrm{d} b_1 = \sum_i \sum_j \frac{\partial \mathrm{Loss}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial b_1} = \sum_{i = 1}^{N} \mathrm{d} y_{i1}
+\mathrm{d} b_j = \sum_i \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial b_j} = \sum_{i = 1}^{N} \mathrm{d} y_{ij}
 $$
 就是将 $\mathrm{d} y$ 的第一列所有行相加。同理，$\mathrm{d} b_j$ 就是将 $\mathrm{d} y$ 第j列所有行相加。而 $\mathrm{d} y$ 为(N, C), 由此计算出的 $\mathrm{d} b_j$ 为 (1, C)，正好是b的shape。
 ```python
@@ -157,17 +157,22 @@ grads['b2'] = np.sum(Dscores, axis=0)
 ```
 这里用 **维度分析** 更好解释，正因为 $\mathrm{d} y$ 为(N, C)，而b (1, C)只能与 $\mathrm{d} y$ 有关，所以只能沿着axis=0相加得到。详细的推导摆在这里，以后再遇到按 **维度分析** 的方式直接用就行了。
 
+这里再插一句，从 $\mathrm{d} b_1 = \sum_{i = 1}^{N} \mathrm{d} y_{i1}$ 来看，$\sum$的下标是从 $i$ 从1到N，这说明 $b_1$ 的grad是由 **这一batch中所有sample** 的第一个feature所决定的。
 ##### $\mathrm{d} W$的推导
 
 同样以 $\mathrm{d} w_{11}$ 为例
 $$
-\mathrm{d} w_{11} = \frac{\partial \mathrm{Loss}}{\partial w_{11}} = \frac{\partial \mathrm{Loss}}{\partial y} \cdot \frac{\partial y}{\partial w_{11}} = \sum_i \sum_j \frac{\partial \mathrm{Loss}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial w_{11}}
+\mathrm{d} w_{11} = \frac{\partial \mathrm{L}}{\partial w_{11}} = \frac{\partial \mathrm{L}}{\partial y} \cdot \frac{\partial y}{\partial w_{11}} = \sum_i \sum_j \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial w_{11}}
 $$
 从y的展开式来看，$w_{11}$ 仅与 $y_{i1}$ 有关，而 $\frac{\partial y_{i1}}{\partial w_{11}} = x_{i1}$，所以：
 $$
-\mathrm{d} w_{11} = \sum_i \sum_j \frac{\partial \mathrm{Loss}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial w_{11}} = \sum_{i = 1}^{N} x_{i1} \cdot \mathrm{d} y_{i1}
+\mathrm{d} w_{11} = \sum_i \sum_j \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial w_{11}} = \sum_{i = 1}^{N} x_{i1} \cdot \mathrm{d} y_{i1}
 $$
 推广到一般，可得：
+$$
+\mathrm{d} w_{pq} = \sum_i \sum_j \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial w_{pq}} = \sum_{i = 1}^{N} x_{ip} \cdot \mathrm{d} y_{iq},
+$$
+写成矩阵相乘形式为：
 $$
 \mathrm{d} w  = \begin{bmatrix}
 \mathrm{d} w_{11}&   \mathrm{d} w_{12}&  ... &  \mathrm{d} w_{1c} \newline
@@ -190,18 +195,22 @@ $$
 ```python
 grads['W2'] = relu_out.T.dot(Dscores) + 2 * reg * W2
 ```
-
+这里再插一句，从 $\mathrm{d} w_{11} = \sum_{i = 1}^{N} x_{i1} \cdot \mathrm{d} y_{i1}$ 来看，$\sum$的下标是从 $i$ 从1到N，这说明 $w_{11}$ 的grad是由 **这一batch中所有sample** 的第一个feature所决定的。
 ##### $\mathrm{d} X$的推导
 
 既然写了，就把它写全吧。
 $$
-\mathrm{d} x_{11} = \frac{\partial \mathrm{Loss}}{\partial x_{11}} = \frac{\partial \mathrm{Loss}}{\partial y} \cdot \frac{\partial y}{\partial x_{11}} = \sum_i \sum_j \frac{\partial \mathrm{Loss}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial x_{11}}
+\mathrm{d} x_{11} = \frac{\partial \mathrm{L}}{\partial x_{11}} = \frac{\partial \mathrm{L}}{\partial y} \cdot \frac{\partial y}{\partial x_{11}} = \sum_i \sum_j \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial x_{11}}
 $$
 而 $x_{11}$ 仅与 $y_{1j}$ 有关，且 $\frac{\partial y_{1j}}{\partial x_{11}} = w_{1j}$，所以
 $$
-\mathrm{d} x_{11} = \sum_i \sum_j \frac{\partial \mathrm{Loss}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial x_{11}} = \sum_{j = 1}^{C} w_{1j} \cdot \mathrm{d} y_{1j}
+\mathrm{d} x_{11} = \sum_i \sum_j \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial x_{11}} = \sum_{j = 1}^{C} w_{1j} \cdot \mathrm{d} y_{1j}
 $$
 推广到一般：
+$$
+\mathrm{d} x_{pq} = \sum_i \sum_j \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial x_{pq}} = \sum_{j = 1}^{C} \mathrm{d} y_{pj} \cdot w_{qj}
+$$
+其矩阵相乘形式为：
 $$
 \mathrm{d} x  = \begin{bmatrix}
 \mathrm{d} x_{11}&   \mathrm{d} x_{12}&  ... &  \mathrm{d} x_{1c} \newline
@@ -261,13 +270,3 @@ def loss(self, X, y=None, reg=0.0):
 > None of the above.
 
 增加dataset通常来讲可以；增加hidden可能会行，但不一定，因为反而会更加overfit；增大reg strength也可以减小overfit。上述所有措施都是可能，但不能保证一定行。
-
-
-
-
-
-
-
-
-
-end
