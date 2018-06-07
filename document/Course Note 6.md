@@ -31,7 +31,7 @@ w = np.random.randn(n) * sqrt(2.0/n)
 > L1: leads the weight vectors to become sparse during optimization (i.e. very close to exactly zero).
 
 2. Dropout：作业里细讲
-3. 人为的在引入stochastic behavior
+3. 人为的引入stochasticity，例如dropout，data augmentation。
 
 常用的方法是L2 + dropout。
 
