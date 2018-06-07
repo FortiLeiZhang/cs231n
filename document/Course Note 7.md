@@ -101,7 +101,7 @@ learning_rate = 10 ** np.uniform(-6, 1)
 ```
 3. 用random search，不要用grid search
 4. 如果最优值落到了边界上，考虑扩大边界
-5. 先选择一个大的范围，每次test仅做几个epoch，然后逐步缩小范围，精调。
+5. 先选择一个大的范围，lr大概在1e-3到1e-5之间，每次test仅做几个epoch，然后逐步缩小范围，精调。
 
 ### Model Ensembles
 1. 同一模型，不同初始化参数
