@@ -62,36 +62,6 @@ $$
 ###### 第一层参数可视化
 图像不应该有太多噪声点。
 
-### 参数更新
-这里罗列了几种SGD参数更新的方法，具体在作业里讲，仅把pytorch函数记录在此。
-###### SGD
-```python
-optimizer = torch.optim.SGD(params, lr=0.1, momentum=0, dampening=0, weight_decay=0, nesterov=False)
-```
-###### Momentum SGD
-```python
-optimizer = torch.optim.SGD(params, lr=0.1, momentum=0.9, dampening=0, weight_decay=0, nesterov=False)
-```
-###### Nesterov Momentum SGD
-```python
-optimizer = torch.optim.SGD(params, lr=0.1, momentum=0.9, dampening=0, weight_decay=0, nesterov=True)
-```
-以上几种方法的learning rate是不变的，或者是随固定节奏decay的，下面几种方法learning rate随训练的进行而自动进行调整，即learning rate是参数W或者dW的函数：
-###### Adagrad
-```python
-optimizer = torch.optim.Adagrad(params, lr=0.01, lr_decay=0, weight_decay=0, initial_accumulator_value=0)
-```
-###### RMSprop
-```python
-optimizer = torch.optim.RMSprop(params, lr=0.01, alpha=0.99, eps=1e-08, weight_decay=0, momentum=0, centered=False)
-```
-###### Adam
-```python
-optimizer = torch.optim.Adam(params, lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0, amsgrad=False)
-```
-
-目前常用的是Adam，但是也可以试试SGD+Nesterov。
-
 ### 超参数的优化
 优化超参数是训练当中花费时间最长的一步。这里只是提了几点指导性的方法：
 1. 选择一个合适大小的val set，在这个set上做validation，不要做many folds cross-validation。
@@ -103,10 +73,93 @@ learning_rate = 10 ** np.uniform(-6, 1)
 4. 如果最优值落到了边界上，考虑扩大边界
 5. 先选择一个大的范围，lr大概在1e-3到1e-5之间，每次test仅做几个epoch，然后逐步缩小范围，精调。
 
+### 参数更新
+Course note里写的比较简单，重要的内容都在视频中。
+这里罗列了几种SGD参数更新的方法，具体在作业里讲，仅把pytorch函数记录在此。
+###### Vanilla SGD
+```python
+while True:
+  dx = computer_gradient(x)
+  x += - learning_rate * dx
+```
+Vanilla SGD实现很简单，但在实际应用中有很多问题：
+
+1. 如果函数在一个维度下降很快(陡)，而在另外一个维度下降很慢(缓)。在陡的维度，函数变化很大，在缓的维度，函数变化很小，所以函数虽然会持续向最小值收敛，但收敛曲线会像在两堵墙之间来回反弹一样zig-zag前进，效率很低。因为要学习的函数通常是几千维的，所以这种情况几乎是肯定发生的。
+2. 会卡在局部极小值点或者鞍点，这才是最大的问题。1和2其实是同一个问题，想象一下1的极限情况就是在鞍点处，曲线在一个方向几乎不动，而在其他方向会像打乒乓一样来回反弹。
+3. 因为是stochastic的，每次抽样的mini-batch会引入noise，vanilla SGD对这种误差敏感，造成收敛曲线抖动。
+
+###### Momentum SGD
+```python
+vx = 0
+while True:
+  dx = computer_gradient(x)
+  vx = rho * vx + dx   # running mean of gradients, rho = 0.9 or 0.99
+  x += - learning_rate * dx
+```
+在Vanilla SGD的基础上加入动量(momentum)的概念，这与股票研究中的momentum是一个道理。
+
+1. 由于momentum的存在，在鞍点处，即使某一方向dx等于0，vx仍然不为0，参数依然会更新，收敛曲线有概率冲过鞍点。
+2. 同样，由于momentum的存在，在缓的方向收敛速度会增大，减少zig-zag的频率。
+3. 会减少noise对收敛的影响。
+
+注意：理论上讲，Vanilla SGD的问题在Momentum SGD中依然会存在，但是因为momentum的引入，会大大缓解。实际上，即使是下面介绍的更先进的方法依然不会完全避免上述问题，但是会使问题出现的概率大大的降低。
+###### Nesterov Momentum SGD
+```python
+old_v = 0
+v = 0
+while True:
+  dx = computer_gradient(x)
+  old_v = v
+  v = rho * v - learning_rate * dx
+  x += - rho * old_v + (1 + rho) * v
+```
+Momentum SGD的另一个变种。特征在于先对velocity进行更新，然后再做参数更新。
+
+上面三个SGD极其变种仅仅引入了velocity的概念，下面几种参数更新的方法把dx的滑动均值也纳入更新函数中。
+###### Adagrad
+```python
+grad_squared = 0
+while True:
+  dx = computer_gradient(x)
+  grad_squared += dx * dx
+  x += - learning_rate * dx / (np.sqrt(grad_squared) + eps)
+```
+Adagrad的作用是，当dx大时，参数更新时会除以一个较大的数；而dx小时，相应的除以一个较小的数。从而平衡在各个方向上的收敛速度。但是learning rate会随着学习的深入越来越小。
+
+###### RMSprop
+```python
+grad_squared = 0
+while True:
+  dx = computer_gradient(x)
+  grad_squared = decay_rate * grad_squared + (1 - grad_squared) * dx * dx
+  x += - learning_rate * dx / (np.sqrt(grad_squared) + eps)
+```
+RMSprop引入了一个decay来缓解Adagrad中learning rate随学习深入而减小的问题。
+
+###### Adam
+```python
+first_moment = 0
+second_moment = 0
+for t in range(1, num_iterations):
+  dx = computer_gradient(x)
+  first_moment = beta1 * first_moment + (1 - beta1) * dx
+  second_moment = beta2 * second_moment + (1 - beta2) * dx * dx
+  first_unbias = first_moment / (1 - beta1 ** t)
+  second_unbias = second_moment / (1 - beta2 ** t)
+  x += - learning_rate * first_unbias / (np.sqrt(second_unbias) + eps)
+```
+Adam是将momentum和dx的滑动均值统统考虑进来。注意，这里加入一个unbias项是因为：如果没有unbias项，那么在训练开始的时候，second_moment为0，此时更新x需要除以一个很小的数，导致learning rate会很大。
+
+Best practise：Adam ( beta1 = 0.9，beta2 = 0.999，learning_rate = 1e-3 )
+
+###### Learning rate decay
+随着学习的深入，逐步减小learning rate，通常与SGD一起用，Adam事实上本身已经实现了learnig rate decay。实践中，训练开始并不设置learnig rate decay，训练几个epoch后，如果loss不再降低，就要考虑加入learning rate decay。
+
+###### Second-order optimization
+使用first-oder和second-oder梯度，但是需要算Hessian矩阵，太复杂很少用。
+
 ### Model Ensembles
 1. 同一模型，不同初始化参数
 2. 最好的几个模型
 3. 同一模型在不同时间点上的训练参数
 4. 对不同时间点上的模型参数取平均值
-
-其实这一节看看summary里的点就行了。
