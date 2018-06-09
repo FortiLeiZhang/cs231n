@@ -65,8 +65,21 @@ def grad_check_sparse(f, x, analytic_grad, num_checks=10, h=1e-5)
 
 Sigmoid函数在输入值太大和太小时都会进入饱和区，在此区域grad为0；ReLU函数在输入小于0时，grad为0；Leaky ReLU则不会有grad为0的情况。
 
+### [Solver函数的实现](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment2/cs231n/solver.py)
+第一个要注意的地方是_rest函数为每一个需要更新的param初始化了一个config：
+```python
+self.optim_configs = {}
+for p in self.model.params:
+    d = {k: v for k, v in self.optim_config.items()}
+    self.optim_configs[p] = d
+```
+这是因为：如果只采用Vanilla SGD的话，很简单，所有params共享一个learning rate参数。但是，如果采用其他的方法，每一个param在更新时，都有与自己以前状态相关的参数，如momentum，dx的滑动平均等等，所以要为每一个param维护一个属于自己的config。
 
+> Inline Question 2:
+>
+>Did you notice anything about the comparative difficulty of training the three-layer net vs training the five layer net? In particular, based on your experience, which network seemed more sensitive to the initialization scale? Why do you think that is the case?
 
+五层网络比三层网络难调的多，对weight_scale特别敏感，稍不小心loss就飞了。这是因为网络层数越多，越难以保持数据的方差，BN应该对解决此问题有效果。
 
 
 
