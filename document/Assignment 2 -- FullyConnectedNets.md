@@ -81,9 +81,16 @@ for p in self.model.params:
 
 五层网络比三层网络难调的多，对weight_scale特别敏感，稍不小心loss就飞了。这是因为网络层数越多，越难以保持数据的方差，BN应该对解决此问题有效果。
 
+> Inline Question 3:
+>
+> AdaGrad, like Adam, is a per-parameter optimization method that uses the following update rule:
+```python
+cache += dw**2
+w += - learning_rate * dw / (np.sqrt(cache) + eps)
+```
+>John notices that when he was training a network with AdaGrad that the updates became very small, and that his network was learning slowly. Using your knowledge of the AdaGrad update rule, why do you think the updates would become very small? Would Adam have the same issue?
 
-
-
+因为cache是dw平方的叠加，随着学习的深入，这个值会越来越大，而在w更新的过程中需要除以cache，这会导致实际上的learnig rate会越来越小。
 
 
 

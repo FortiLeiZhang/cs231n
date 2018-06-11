@@ -80,7 +80,7 @@ class FullyConnectedNet(object):
             weight = self.params[w_name]
             bias = self.params[b_name]
             
-            out, caches[cache_name] = affine_forward(out, weight, bias)
+            out, caches[cache_name] = affine_relu_forward(out, weight, bias)
             total_loss += 0.5 * self.reg * np.sum(weight * weight)
         
         if y is None:
@@ -96,7 +96,7 @@ class FullyConnectedNet(object):
             
             weight = self.params[w_name]
             cache = caches[cache_name]
-            dout, dw, db = affine_backward(dout, cache)
+            dout, dw, db = affine_relu_backward(dout, cache)
             grads[w_name] = dw + self.reg * weight
             grads[b_name] = db
         
