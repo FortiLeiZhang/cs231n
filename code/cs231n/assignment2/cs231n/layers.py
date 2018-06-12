@@ -27,6 +27,78 @@ def relu_backward(dout, cache):
     dx = dout * (x > 0)
     return dx
 
+def batchnorm_forward(x, gamma, beta, bn_param):
+    if bn_param is None:
+        bn_param = {}
+        
+    out, cache = None, None
+        
+    running_mean = bn_param.get('running_mean', np.zeros_like(beta))
+    running_var = bn_param.get('running_var', np.zeros_like(gamma))
+    mode = bn_param.get('mode', 'train')
+    eps = bn_param.get('eps', 1e-8)
+    momentum = bn_param.get('momentum', 0.9)
+    
+    if mode == 'train':
+        x_mean = np.mean(x, axis=0)
+        x_var = np.var(x, axis=0)
+        xhat = (x - x_mean) / (np.sqrt(x_var + eps))
+        out = gamma * xhat + beta
+        
+        bn_param['running_mean'] = momentum * running_mean + (1 - momentum) * x_mean
+        bn_param['running_var'] = momentum * running_var + (1 - momentum) * x_var
+        
+    elif mode == 'test':
+        xhat = (x - running_mean) / (np.sqrt(running_var + eps))
+        out = gamma * xhat + beta
+    
+    else:
+        raise ValueError('Invalid forward batchnorm mode "%s"' % mode)
+        
+    return out, cache
+
+def batchnorm_backward(dout, cache):
+    pass
+
+def batchnorm_backward_alt(dout, cache):
+    pass
+
+def layernorm_forward(x, gamma, beta, ln_param):
+    pass
+
+def layernorm_backward(dout, cache):
+    pass
+
+def dropout_forward(x, dropout_param):
+    pass
+
+def dropout_backward(dout, cache):
+    pass
+
+def conv_forward_naive(x, w, b, conv_param):
+    pass
+
+def conv_backward_naive(dout, cache):
+    pass
+
+def max_pool_forward_naive(x, pool_param):
+    pass
+
+def max_pool_backward_naive(dout, cache):
+    pass
+
+def spatial_batchnorm_forward(x, gamma, beta, bn_param):
+    pass
+
+def spatial_batchnorm_backward(dout, cache):
+    pass
+
+def spatial_groupnorm_forward(x, gamma, beta, G, gn_param):
+    pass
+
+def spatial_groupnorm_backward(dout, cache):
+    pass
+
 def svm_loss(x, y):
     N = x.shape[0]
     

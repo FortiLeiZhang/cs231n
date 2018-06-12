@@ -18,3 +18,22 @@ def affine_relu_backward(dout, cache):
     dw = x.reshape(N, -1).T.dot(Daff_out)
     db = np.sum(Daff_out, axis=0)
     return dx, dw, db
+
+def conv_relu_forward(x, w, b, conv_param):
+    pass
+
+def conv_relu_backward(dout, cache):
+    pass
+
+def conv_bn_relu_forward(x, w, b, gamma, beta, conv_param, bn_param):
+    pass
+
+def conv_bn_relu_backward(dout, cache):
+    pass
+
+def conv_relu_pool_forward(x, w, b, conv_param, pool_param):
+    pass
+
+def conv_relu_pool_backward(dout, cache):
+    pass
+
