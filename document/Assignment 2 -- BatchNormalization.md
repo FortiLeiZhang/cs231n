@@ -282,10 +282,10 @@ y_{nd} &= \gamma_d \cdot \hat{x_{nd}} + \beta_d \newline
 \frac{\partial y_{nd}}{\partial \hat{x_{nd}}} &= \gamma_d
 \end{aligned}
 $$
-下面的工作就是要计算 $\frac{\partial \hat{x}_{nd}}{\partial x_{ij}}$:
+下面的工作就是要计算 $\frac{\partial \hat{x_{nd}}}{\partial x_{ij}}$:
 $$
 \begin{aligned}
-\frac{\partial \hat{x}_{nd}}{\partial x_{ij}} &= \frac{\partial}{\partial x_{ij}} \left( \frac{x_{nd} - \mu_d}{\sqrt{\sigma_d^2 + \epsilon}}\right) \newline
+\frac{\partial \hat{x_{nd}}}{\partial x_{ij}} &= \frac{\partial}{\partial x_{ij}} \left( \frac{x_{nd} - \mu_d}{\sqrt{\sigma_d^2 + \epsilon}}\right) \newline
 &= \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) + \left( x_{nd} - \mu_d \right) \cdot \frac{\partial}{\partial x_{ij}} \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \newline
 &= \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) - \frac{1}{2} \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \cdot \frac{\partial \sigma_d^2}{\partial x_{ij}}
 \end{aligned}
@@ -297,7 +297,7 @@ $$
 &= \frac{\partial x_{nd}}{\partial x_{ij}} - \frac{1}{N} \frac{\partial}{\partial x_{ij}} \left( \sum_{t=1}^{N} x_{td} \right)
 \end{aligned}
 $$
-第一项，当且仅当 $n=i, d=j$ 时不为0，第二项中仅有 $d=j$ 项不为0，故：
+第一项，当且仅当 $n=i$, $d=j$ 时不为0，第二项中仅有 $d=j$ 项不为0，故：
 $$
 \frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) = \delta_{n, i} \cdot \delta_{d, j} - \frac{1}{N} \delta_{d, j}
 $$
