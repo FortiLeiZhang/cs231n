@@ -269,7 +269,7 @@ $$
 $$
 \begin{aligned}
 \frac{\partial L}{\partial x_{ij}} &= \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial x_{ij}} \newline
-&= \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial x_{nd}} \cdot \frac{\partial x_{nd}}{\partial x_{ij}}
+&= \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial \hat{x_{nd}}} \cdot \frac{\partial x_{nd}}{\partial x_{ij}}
 \end{aligned}
 $$
 
