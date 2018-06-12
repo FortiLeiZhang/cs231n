@@ -268,8 +268,8 @@ $$
 计算对 $x_{ij}$ 的导数：
 $$
 \begin{aligned}
-\frac{\partial L}{\partial x_{ij}} &= \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial x_{ij}} \newline
-&= \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial \hat{x}_{nd}} \cdot \frac{\partial \hat{x}_{nd}}{\partial x_{ij}}
+\frac{\partial L}{\partial x_{i}} &= \sum_{n,d} \frac{\partial L}{\partial y_{n}} \cdot \frac{\partial y_{n}}{\partial x_{i}} \newline
+&= \sum_{n,d} \frac{\partial L}{\partial y_{d}} \cdot \frac{\partial y_{n}}{\partial \hat{x}_{d}} \cdot \frac{\partial \hat{x}_{d}}{\partial x_{i}}
 \end{aligned}
 $$
 
