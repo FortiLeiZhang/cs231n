@@ -331,7 +331,13 @@ $$
 &= \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \left( \delta_{n, i} \cdot \delta_{d, j} - \frac{1}{N} \delta_{d, j} \right) - \frac{1}{N} \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \left( x_{id} - \mu_d \right) \cdot \delta_{d, j}
 \end{aligned}
 $$
-
+最后，计算对 $x_{ij}$ 的导数
+$$
+\begin{aligned}
+\frac{\partial L}{\partial x_{ij}} &= \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \gamma_d \cdot \frac{\partial \hat{x_{nd}}}{\partial x_{ij}} \newline
+&= \sum_{n,d} \gamma_d \cdot  \frac{\partial L}{\partial y_{nd}} \cdot \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \left( \delta_{n, i} \cdot \delta_{d, j} - \frac{1}{N} \delta_{d, j} \right) - \frac{1}{N} \sum_{n,d} \gamma_d \cdot  \frac{\partial L}{\partial y_{nd}} \cdot \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \left( x_{id} - \mu_d \right) \cdot \delta_{d, j}
+\end{aligned}
+$$
 
 
 
