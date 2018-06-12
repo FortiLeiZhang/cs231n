@@ -1,4 +1,4 @@
-[Assignment 2 | Batch Normalization](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment2/FullyConnectedNets.ipynb)
+[Assignment 2 | Batch Normalization](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment2/BatchNormalization.ipynb)
 ---
 
 上文吐槽BN部分讲的太烂，2018年果然更新了这一部分，slides里加了好多内容，详见[Lecture 6的slides](http://cs231n.stanford.edu/slides/2018/cs231n_2018_lecture06.pdf)第54到61页，以及[Lecture 7的slides](http://cs231n.stanford.edu/slides/2018/cs231n_2018_lecture07.pdf)第11到18页，这里结合着[原始论文](https://arxiv.org/abs/1502.03167)和作业，把BN及其几个变种好好总结一下。
@@ -19,13 +19,19 @@ $$
 \end{aligned}
 $$
 标准化后的输出为：
+
 $$
 \hat{x}_{i, j} = \frac{x_{i, j} - \mu_j}{\sqrt{\sigma_{j}^{2} + \epsilon}}
 $$
-但是但是但是，这里武断的使输入均值为0，方差为1真的是最好的选择么？不一定。如果不是最好的选择，设为多少是最好的选择呢？不知道。不知道的话怎么办呢？那就让NN自己去学习一个最好的去呗。所以才有了下一步：
+
+但是但是但是，这里武断的使输入均值为0，方差为1真的是最好的选择么？不一定。如果不是最好的选择，
+设为多少是最好的选择呢？不知道。不知道的话怎么办呢?
+那就让NN自己去学习一个最好的去呗。所以才有了下一步：
+
 $$
 y = \gamma \cdot \hat{x} + \beta
 $$
+
 其中，$\gamma$和 $\beta$是要学习的参数，将输入的均值和方差从(0,1)又拉到了 $(\gamma, \beta)$。
 
 所以，通常说起来BN是一层，但是我认为，BN是两层：Normalization Layer和Shift Layer，这两层是紧密相连，不可分割的。其中，Normalization Layer将输入的均值和方差标准化为(0,1)，Shift Layer又将其拉到 $(\gamma, \beta)$。这里，$(\gamma, \beta)$ 和其他的weight、bias一样，都是通过backprop算梯度，然后再用SGD等方法更新学习得到。
