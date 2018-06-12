@@ -267,7 +267,10 @@ y &= \gamma \cdot \hat{x} + \beta \newline
 $$
 计算对 $x_{ij}$ 的导数：
 $$
-\frac{\partial L}{\partial x_{ij}} = \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial x_{ij}}
+\begin{aligned}
+\frac{\partial L}{\partial x_{ij}} &= \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial x_{ij}} \newline
+&=
+\end{aligned}
 $$
 
 其中：
