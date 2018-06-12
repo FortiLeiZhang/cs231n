@@ -268,10 +268,11 @@ $$
 计算对 $x_{ij}$ 的导数：
 $$
 \begin{aligned}
-\frac{\partial L}{\partial x_{ij}} &= \sum_{n, \,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial x_{ij}} \newline
-&= \sum_{n, \,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial \hat{x}_{nd}} \cdot \frac{\partial \hat{x}_{nd}}{\partial x_{ij}}
+\frac{\partial L}{\partial x_{ij}} &= \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial x_{ij}} \newline
+&= \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial \hat{x}_{nd}} \cdot \frac{\partial \hat{x}_{nd}}{\partial x_{ij}}
 \end{aligned}
 $$
+
 其中：
 $$
 \begin{aligned}
@@ -297,13 +298,40 @@ $$
 &= \frac{\partial x_{nd}}{\partial x_{ij}} - \frac{1}{N} \frac{\partial}{\partial x_{ij}} \left( \sum_{t=1}^{N} x_{td} \right)
 \end{aligned}
 $$
-
-
-
-
-
-
-
+第一项，当且仅当 $n=i, d=j$ 时不为0，第二项中仅有 $d=j$ 项不为0，故：
+$$
+\frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) = \delta_{n, i} \cdot \delta_{d, j} - \frac{1}{N} \delta_{d, j}
+$$
+接着计算：
+$$
+\begin{aligned}
+\frac{\partial \sigma_d^2}{\partial x_{ij}} &= \frac{\partial}{\partial x_{ij}} \left( \frac{1}{N} \sum_{n=1}^{N} \left(x_{nd} - \mu_d \right)^2 \right) \newline
+&= \frac{1}{N} \sum_{n=1}^{N} \frac{\partial}{\partial x_{ij}} \left( \left( x_{nd} - \mu_d \right)^2  \right) \newline
+&= \frac{2}{N} \sum_{n=1}^{N} \left( x_{nd} - \mu_d \right) \frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) \newline
+&= \frac{2}{N} \sum_{n=1}^{N} \left( x_{nd} - \mu_d \right) \cdot \left( \delta_{n, i} \cdot \delta_{d, j} - \frac{1}{N} \delta_{d, j} \right) \newline
+&= \frac{2}{N} \sum_{n=1}^{N} \left( x_{nd} - \mu_d \right) \cdot \delta_{n, i} \cdot \delta_{d, j} - \frac{2}{N^2} \sum_{n=1}^{N} \left( x_{nd} - \mu_d \right) \cdot \delta_{d, j}
+\end{aligned}
+$$
+第一项中，仅有 $n=i$ 一项不为0：
+$$
+\sum_{n=1}^{N} \left( x_{nd} - \mu_d \right) \cdot \delta_{n, i} \cdot \delta_{d, j} = \left( x_{id} - \mu_d \right) \cdot \delta_{d, j}
+$$
+第二项：
+$$
+\sum_{n=1}^{N} \left( x_{nd} - \mu_d \right) = \sum_{n=1}^{N} x_{nd} - N \cdot \mu_d
+$$
+而 $\mu_d = \frac{1}{N} \sum_{n=1}^{N} x_{nd}$，因此上式为0。
+所以：
+$$
+\frac{\partial \sigma_d^2}{\partial x_{ij}} = \frac{2}{N} \left( x_{id} - \mu_d \right) \cdot \delta_{d, j}
+$$
+综上:
+$$
+\begin{aligned}
+\frac{\partial \hat{x}_{nd}}{\partial x_{ij}} &= \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) - \frac{1}{2} \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \cdot \frac{\partial \sigma_d^2}{\partial x_{ij}} \newline
+&= \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \left( \delta_{n, i} \cdot \delta_{d, j} - \frac{1}{N} \delta_{d, j} \right) - \frac{1}{N} \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \left( x_{id} - \mu_d \right) \cdot \delta_{d, j}
+\end{aligned}
+$$
 
 
 
