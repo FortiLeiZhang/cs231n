@@ -18,11 +18,7 @@ $$
 \sigma_{j}^{2} &= \frac{1}{N} \sum_{i = 1}^{N} \left ( x_{i,j} - \mu_j\right)^2
 \end{aligned}
 $$
-标准化后的输出为：
-
-$$
-\hat{x}_{i, j} = \frac{x_{i, j} - \mu_j}{\sqrt{\sigma_{j}^{2}}}
-$$
+标准化后的输出为: $\hat{x}_{i, j} = \frac{x_{i, j} - \mu_j}{\sqrt{\sigma_{j}^{2}+\epsilon}}$。
 
 但是但是但是，这里武断的使输入均值为0，方差为1真的是最好的选择么？不一定。如果不是最好的选择，
 设为多少是最好的选择呢？不知道。不知道的话怎么办呢?
