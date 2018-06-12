@@ -327,7 +327,7 @@ $$
 综上:
 $$
 \begin{aligned}
-\frac{\partial \hat{x}_{nd}}{\partial x_{ij}} &= \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) - \frac{1}{2} \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \cdot \frac{\partial \sigma_d^2}{\partial x_{ij}} \newline
+\frac{\partial \hat{x_{nd}}}{\partial x_{ij}} &= \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) - \frac{1}{2} \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \cdot \frac{\partial \sigma_d^2}{\partial x_{ij}} \newline
 &= \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \left( \delta_{n, i} \cdot \delta_{d, j} - \frac{1}{N} \delta_{d, j} \right) - \frac{1}{N} \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \left( x_{id} - \mu_d \right) \cdot \delta_{d, j}
 \end{aligned}
 $$
