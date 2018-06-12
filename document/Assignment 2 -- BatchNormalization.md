@@ -3,8 +3,8 @@
 
 上文吐槽BN部分讲的太烂，2018年果然更新了这一部分，slides里加了好多内容，详见[Lecture 6的slides](http://cs231n.stanford.edu/slides/2018/cs231n_2018_lecture06.pdf)第54到61页，以及[Lecture 7的slides](http://cs231n.stanford.edu/slides/2018/cs231n_2018_lecture07.pdf)第11到18页，这里结合着[原始论文](https://arxiv.org/abs/1502.03167)和作业，把BN及其几个变种好好总结一下。
 
-### Batch Normalization
-#### Train
+# Batch Normalization
+## Train
 前面的作业中已经见识到了，weight初始化时方差的调校真的是很麻烦，小了梯度消失不学习，大了梯度爆炸没法学习。
 即使开始初始化的很好，随着学习的深入，网络的加深，每一层的方差已经不再受控；另外，特别是对于刚开始的几层，方差上稍微的变化，都会在forward prop时逐级放大的传递下去。
 作业中只是三五层的小网络，要是几十上百层的网络，可以想象学习几乎是不可能的。
@@ -60,14 +60,14 @@ learnable params:
 输出：
       y = gamma * xhat + beta
 ```
-#### Test
+## Test
 在test时，就没有mini-batch可用来算 $\mu$和 $\sigma^2$了，此时常用的方法是在train的过程中记录一个 $\mu$和 $\sigma^2$的滑动均值在test的时候使用。
 
 BN通常放在FC/Conv之后，ReLU之前。
 
-#### Backprop
+### Backprop
 BN的backprop是这次作业的难点，还要用两种方法做，这里一步一步尽量详细地把推导过程写出来。
-##### $\mathrm{d} \beta$
+#### $\mathrm{d} \beta$
 $\mathrm{d} \beta$ 用维度分析法：
 $$
 y = \gamma \cdot \hat{x} + \beta
@@ -78,7 +78,7 @@ dbeta = np.sum(dout, axis=0)
 ```
 这里就不赘述了。
 
-##### $\mathrm{d} \gamma$
+#### $\mathrm{d} \gamma$
 其实 $\mathrm{d} \gamma$ 也可以用维度分析法得到，$\mathrm{d} y$ 和 $\mathrm{d} \hat{x}$ 都形如(N, D)，而 $\mathrm{d} \gamma$ 形如(D,)，显然 $\mathrm{d} \gamma$ 应为：
 ```python
 dgamma = np.sum(xhat * dout, axis=0)
@@ -121,7 +121,7 @@ $$
 \frac{\partial \mathrm{L}}{\partial \gamma_q} = \sum_{i=1}^{N} \frac{\partial \mathrm{L}}{\partial y_{iq}} \cdot \frac{\partial y_{iq}}{\partial \gamma_q} = \sum_{i=1}^{N}x_{iq} \cdot \mathrm{d} y_{iq}
 $$
 
-##### $\mathrm{d} x$：第一种方法
+#### $\mathrm{d} x$：第一种方法
 ![计算图](https://kratzert.github.io/images/bn_backpass/BNcircuit.png)
 先画出forward和backward的计算图，如图所示。forward的代码如下：
 ```python
@@ -245,17 +245,58 @@ $$
 Dx += Dx_mean * (1 / N * np.ones_like(x_hat))
 ```
 
-3. 注意到backprop时 Dx_mean_0 两次出现在等式左边，这说明在计算图中有两条路径通向 Dx_mean_0，这两条路径的结果要相加，所以第二次出现时要用 $\pm$:
+3. 注意到backprop时 Dx_mean_0 两次出现在等式左边，这说明在计算图中有两条路径通向 Dx_mean_0，这两条路径的结果要相加，所以第二次出现时要用 +=:
 ```python
 Dx_mean_0 = Dx_hat * (inv_x_std)
 Dx_mean_0 += Dx_mean_0_sqr * (2 * x_mean_0)
 ```
-##### $\mathrm{d} x$：第二种方法
-
-
-
-
-
+#### $\mathrm{d} x$：第二种方法
+第二种方法的公式推导实在是太繁了，我再也不想写第二遍了。先来个计算图：
+$$
+x \rightarrow \hat{x} \rightarrow y \rightarrow L
+$$
+中间参数分别为：
+$$
+\begin{aligned}
+\mathrm{d} out &= \frac{\partial L}{\partial y} \newline
+y &= \gamma \cdot \hat{x} + \beta \newline
+\hat{x} &= \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} \newline
+\mu &= \frac{1}{N} \sum_{n=1}^{N} x_n \newline
+\sigma^2 &= \frac{1}{N} \sum_{n=1}^{N} \left(x_n - \mu\right)^2
+\end{aligned}
+$$
+计算对 $x_{ij}$ 的导数：
+$$
+\begin{aligned}
+\frac{\partial L}{\partial x_{ij}} &= \sum_{n, \,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial x_{ij}} \newline
+&= \sum_{n, \,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial \hat{x}_{nd}} \cdot \frac{\partial \hat{x}_{nd}}{\partial x_{ij}}
+\end{aligned}
+$$
+其中：
+$$
+\begin{aligned}
+y_{nd} &= \gamma_d \cdot \hat{x}_{nd} + \beta_d \newline
+\hat{x}_{nd} &= \frac{x_{nd} - \mu_d}{\sqrt{\sigma_d^2 + \epsilon}} \newline
+\mu_d &= \frac{1}{N} \sum_{n=1}^{N} x_{nd} \newline
+\sigma_d^2 &= \frac{1}{N} \sum_{n=1}^{N} \left(x_{nd} - \mu_d \right)^2 \newline
+\frac{\partial y_{nd}}{\partial \hat{x}_{nd}} &= \gamma_d
+\end{aligned}
+$$
+下面的工作就是要计算 $\frac{\partial \hat{x}_{nd}}{\partial x_{ij}}$:
+$$
+\begin{aligned}
+\frac{\partial \hat{x}_{nd}}{\partial x_{ij}} &= \frac{\partial}{\partial x_{ij}} \left( \frac{x_{nd} - \mu_d}{\sqrt{\sigma_d^2 + \epsilon}}\right) \newline
+&= \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) + \left( x_{nd} - \mu_d \right) \cdot \frac{\partial}{\partial x_{ij}} \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \newline
+&= \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) - \frac{1}{2} \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \cdot \frac{\partial \sigma_d^2}{\partial x_{ij}}
+\end{aligned}
+$$
+下面分别计算，首先：
+$$
+\begin{aligned}
+\frac{\partial}{\partial x_{ij}} \left( x_{nd} - \mu_d \right) &= \frac{\partial}{\partial x_{ij}} \left( x_{nd} - \frac{1}{N} \sum_{t=1}^{N} x_{td} \right) \newline
+&= \frac{\partial x_{nd}}{\partial x_{ij}} - \frac{1}{N} \frac{\partial}{\partial x_{ij}} \left( \sum_{t=1}^{N} x_{td} \right)
+\end{aligned}
+$$
 
 
 
