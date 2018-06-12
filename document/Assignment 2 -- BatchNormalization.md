@@ -272,15 +272,14 @@ $$
 &= \sum_{n,d} \frac{\partial L}{\partial y_{nd}} \cdot \frac{\partial y_{nd}}{\partial \hat{x_{nd}}} \cdot \frac{\partial \hat{x_{nd}}}{\partial x_{ij}}
 \end{aligned}
 $$
-
 其中：
 $$
 \begin{aligned}
-y_{nd} &= \gamma_d \cdot \hat{x}_{nd} + \beta_d \newline
-\hat{x}_{nd} &= \frac{x_{nd} - \mu_d}{\sqrt{\sigma_d^2 + \epsilon}} \newline
+y_{nd} &= \gamma_d \cdot \hat{x_{nd}} + \beta_d \newline
+\hat{x_{nd}} &= \frac{x_{nd} - \mu_d}{\sqrt{\sigma_d^2 + \epsilon}} \newline
 \mu_d &= \frac{1}{N} \sum_{n=1}^{N} x_{nd} \newline
 \sigma_d^2 &= \frac{1}{N} \sum_{n=1}^{N} \left(x_{nd} - \mu_d \right)^2 \newline
-\frac{\partial y_{nd}}{\partial \hat{x}_{nd}} &= \gamma_d
+\frac{\partial y_{nd}}{\partial \hat{x_{nd}}} &= \gamma_d
 \end{aligned}
 $$
 下面的工作就是要计算 $\frac{\partial \hat{x}_{nd}}{\partial x_{ij}}$:
