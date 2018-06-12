@@ -110,20 +110,147 @@ y_{21} = \gamma_1 \cdot x_{21}, \quad \quad & y_{22} = \gamma_1 \cdot x_{22}, & 
 $$
 由此可得：
 $$
-\frac{\partial \mathrm{L}}{\partial \gamma_q} = \frac{\partial \mathrm{L}}{\partial y} \cdot \frac{\partial y}{\partial \gamma_q} = \sum_{ij} \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial \gamma_q}
+\frac{\partial \mathrm{L}}{\partial \gamma_q} = \frac{\partial \mathrm{L}}{\partial y} \cdot \frac{\partial y}{\partial \gamma_q} = \sum_{i,j} \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial \gamma_q}
 $$
 而仅当 $j = q$ 时有
 $$
-\frac{\partial y_{i,j}}{\partial \gamma_q} = x_{iq}
+\frac{\partial y_{ij}}{\partial \gamma_q} = x_{iq}
 $$
 其余均为0，故：
 $$
 \frac{\partial \mathrm{L}}{\partial \gamma_q} = \sum_{i=1}^{N} \frac{\partial \mathrm{L}}{\partial y_{iq}} \cdot \frac{\partial y_{iq}}{\partial \gamma_q} = \sum_{i=1}^{N}x_{iq} \cdot \mathrm{d} y_{iq}
 $$
 
+##### $\mathrm{d} x$：第一种方法
+![计算图](https://kratzert.github.io/images/bn_backpass/BNcircuit.png)
+先画出forward和backward的计算图，如图所示。forward的代码如下：
+```python
+x_mean = 1 / N * np.sum(x, axis=0)
+x_mean_0 = x - x_mean
+x_mean_0_sqr = x_mean_0 ** 2
+x_var = 1 / N * np.sum(x_mean_0_sqr, axis=0)
+x_std = np.sqrt(x_var + eps)
+inv_x_std = 1 / x_std
+x_hat = x_mean_0 * inv_x_std
 
+out = gamma * x_hat + beta
+cache = (x_mean, x_mean_0, x_mean_0_sqr, x_var, x_std, inv_x_std, x_hat, gamma, eps)
+```
+这里需要注意的是
+1. 尽量将每一步化成最简单的加、乘操作，并且将每一步等号左边的项全部cache起来。这样做的目的是减少backprop时的计算量，但是相应的存贮量就会增加。所以说NN的内存需求要远远大于weights和bias的数目。
+2. 计算mean是，用 1/N * np.sum()，不要用np.mean()，否则在backprop的时候会把 1/N 漏掉。
 
+如果forward的每一步计算分解的足够细的话，backprop可以很清楚：
+```python
+# out = gamma * x_hat + beta
+# (N,D) (D,)    (N,D)   (D,)
+Dx_hat = dout * gamma
 
+# x_hat = x_mean_0 * inv_x_std
+# (N,D)   (N,D)      (D,)
+Dx_mean_0 = Dx_hat * (inv_x_std)
+Dinv_x_std = np.sum(Dx_hat * (x_mean_0), axis=0)
+
+# inv_x_std = 1 / x_std
+# (D,)            (D,)
+Dx_std = Dinv_x_std * (- x_std ** (-2))
+
+# x_std = np.sqrt(x_var + eps)
+# (D,)           (D,)
+Dx_var = Dx_std * (0.5 * (x_var + eps) ** (-0.5))
+
+# x_var = 1 / N * np.sum(x_mean_0_sqr, axis=0)
+# (D,)                   (N,D)
+Dx_mean_0_sqr = Dx_var * (1 / N * np.ones_like(x_mean_0_sqr))
+
+# x_mean_0_sqr = x_mean_0 ** 2
+# (N,D)          (N,D)
+Dx_mean_0 += Dx_mean_0_sqr * (2 * x_mean_0)
+
+# x_mean_0 = x - x_mean
+# (N,D)     (N,D) (D,)
+Dx = Dx_mean_0 * (1)
+Dx_mean = - np.sum(Dx_mean_0, axis=0)
+
+# x_mean = 1 / N * np.sum(x, axis=0)
+# (D,)                   (N,D)
+Dx += Dx_mean * (1 / N * np.ones_like(x_hat))
+
+dx = Dx
+```
+这里要注意的是：
+1. 一定要把每一步计算中每一项的维度搞清楚写下来。注意这一步：
+```python
+# x_hat = x_mean_0 * inv_x_std
+# (N,D)   (N,D)      (D,)
+Dx_mean_0 = Dx_hat * (inv_x_std)
+Dinv_x_std = np.sum(Dx_hat * (x_mean_0), axis=0)
+```
+因为numpy在进行矩阵运算的时候会进行自动的broadcast，所以这里 inv_x_std 实际是形如 (D,)，但是计算是会broadcast成为(N, D)。仅从式子看的话，很容易误写为：
+```python
+Dinv_x_std = Dx_hat * (x_mean_0)
+```
+这时如果进行一下维度分析，会发现 Dinv_x_std 显然要形如 (D,)，但是右侧点积的结果形如 (N, D)，显然要对 axis=0 进行 sum。同理还有这一行：
+```python
+# x_mean_0 = x - x_mean
+# (N,D)     (N,D) (D,)
+Dx = Dx_mean_0 * (1)
+Dx_mean = np.sum(Dx_mean_0 * (-1), axis=0)
+```
+
+2. 对 $y = \sum_{i} x_i$ 的求导，这里
+$$
+\begin{aligned}
+y = &\ [y_1,  y_2, ... , y_D] \newline \newline
+x = &\begin{bmatrix}
+ x_{11}&   x_{12}&  ... &  x_{1D}\newline
+ x_{21}&   x_{22}&  ... &  x_{2D}\newline
+      & ...      &  ... & \newline
+  x_{N1}&   x_{N2}& ... &  x_{ND}
+\end{bmatrix}
+\end{aligned}
+$$
+其中
+$$
+\begin{aligned}
+y_1 &= \frac{1}{N} \left( x_{11} + x_{21} + ... + x_{N1}\right) \newline
+y_2 &= \frac{1}{N} \left( x_{12} + x_{22} + ... + x_{N2}\right) \newline
+&...
+\end{aligned}
+$$
+所以
+$$
+\mathrm{d} x_{11} = \frac{\partial \mathrm{L}}{\partial y} \cdot \frac{\partial y}{\partial x_{11}} = \sum_{i} \frac{\partial \mathrm{L}}{\partial y_{i}} \cdot \frac{\partial y_{i}}{\partial x_{11}} = \frac{\partial \mathrm{L}}{\partial y_{1}} \cdot \frac{\partial y_{1}}{\partial x_{11}} = \mathrm{d} y_1 \cdot \frac{1}{N}
+$$
+综上：
+$$
+\begin{aligned}
+\mathrm{d} x &= \frac{1}{N} \cdot \begin{bmatrix}
+ \mathrm{d} y_1&   \mathrm{d} y_2&  ... &  \mathrm{d} y_D\newline
+ \mathrm{d} y_1&   \mathrm{d} y_2&  ... &  \mathrm{d} y_D\newline
+      & ...      &  ... & \newline
+  \mathrm{d} y_1&   \mathrm{d} y_2& ... &  \mathrm{d} y_D
+\end{bmatrix} \newline
+&= \frac{1}{N} \cdot \mathrm{d} y \cdot \begin{bmatrix}
+ 1&   1&  ... &  1\newline
+ 1&   1&  ... &  1\newline
+      & ...      &  ... & \newline
+  1&   1& ... &  1
+\end{bmatrix}_{N \times D}
+\end{aligned}
+$$
+```python
+# x_mean = 1 / N * np.sum(x, axis=0)
+# (D,)                   (N,D)
+Dx += Dx_mean * (1 / N * np.ones_like(x_hat))
+```
+
+3. 注意到backprop时 Dx_mean_0 两次出现在等式左边，这说明在计算图中有两条路径通向 Dx_mean_0，这两条路径的结果要相加，所以第二次出现时要用 $\pm$:
+```python
+Dx_mean_0 = Dx_hat * (inv_x_std)
+Dx_mean_0 += Dx_mean_0_sqr * (2 * x_mean_0)
+```
+##### $\mathrm{d} x$：第二种方法
 
 
 

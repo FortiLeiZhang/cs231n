@@ -30,9 +30,10 @@ def relu_backward(dout, cache):
 def batchnorm_forward(x, gamma, beta, bn_param):
     if bn_param is None:
         bn_param = {}
-        
+
+    N = x.shape[0]
     out, cache = None, None
-        
+
     running_mean = bn_param.get('running_mean', np.zeros_like(beta))
     running_var = bn_param.get('running_var', np.zeros_like(gamma))
     mode = bn_param.get('mode', 'train')
@@ -40,30 +41,71 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     momentum = bn_param.get('momentum', 0.9)
     
     if mode == 'train':
-        x_mean = np.mean(x, axis=0)
-        x_var = np.var(x, axis=0)
-        xhat = (x - x_mean) / (np.sqrt(x_var + eps))
-        out = gamma * xhat + beta
-        
+        x_mean = 1 / N * np.sum(x, axis=0)
+        x_mean_0 = x - x_mean
+        x_mean_0_sqr = x_mean_0 ** 2
+        x_var = 1 / N * np.sum(x_mean_0_sqr, axis=0)
+        x_std = np.sqrt(x_var + eps)
+        inv_x_std = 1 / x_std
+        x_hat = x_mean_0 * inv_x_std
+
+        out = gamma * x_hat + beta
         bn_param['running_mean'] = momentum * running_mean + (1 - momentum) * x_mean
         bn_param['running_var'] = momentum * running_var + (1 - momentum) * x_var
         
+        cache = (x_mean, x_mean_0, x_mean_0_sqr, x_var, x_std, inv_x_std, x_hat, gamma, eps)
+
     elif mode == 'test':
-        xhat = (x - running_mean) / (np.sqrt(running_var + eps))
-        out = gamma * xhat + beta
+        x_hat = (x - running_mean) / (np.sqrt(running_var + eps))
+        out = gamma * x_hat + beta
     
     else:
         raise ValueError('Invalid forward batchnorm mode "%s"' % mode)
-        
-    cache = (xhat)
+
     return out, cache
 
 def batchnorm_backward(dout, cache):
-    (xhat) = cache
+    (x_mean, x_mean_0, x_mean_0_sqr, x_var, x_std, inv_x_std, x_hat, gamma, eps) = cache
+    N = dout.shape[0]
     dx, dgamma, dbeta = None, None, None
     
+    # out = gamma * x_hat + beta
+    # (N,D) (D,)    (N,D)   (D,)
+    Dx_hat = dout * gamma
+    
+    # x_hat = x_mean_0 * inv_x_std
+    # (N,D)   (N,D)      (D,)
+    Dx_mean_0 = Dx_hat * (inv_x_std)
+    Dinv_x_std = np.sum(Dx_hat * (x_mean_0), axis=0)
+    
+    # inv_x_std = 1 / x_std
+    # (D,)            (D,)
+    Dx_std = Dinv_x_std * (- x_std ** (-2))
+    
+    # x_std = np.sqrt(x_var + eps)
+    # (D,)           (D,)
+    Dx_var = Dx_std * (0.5 * (x_var + eps) ** (-0.5))
+    
+    # x_var = 1 / N * np.sum(x_mean_0_sqr, axis=0)
+    # (D,)                   (N,D)
+    Dx_mean_0_sqr = Dx_var * (1 / N * np.ones_like(x_mean_0_sqr))
+    
+    # x_mean_0_sqr = x_mean_0 ** 2
+    # (N,D)          (N,D)
+    Dx_mean_0 += Dx_mean_0_sqr * (2 * x_mean_0)
+    
+    # x_mean_0 = x - x_mean
+    # (N,D)     (N,D) (D,)
+    Dx = Dx_mean_0 * (1)
+    Dx_mean = np.sum(Dx_mean_0 * (-1), axis=0)
+    
+    # x_mean = 1 / N * np.sum(x, axis=0)
+    # (D,)                   (N,D)
+    Dx += Dx_mean * (1 / N * np.ones_like(x_hat))
+    
+    dx = Dx    
     dbeta = np.sum(dout, axis=0)
-    dgamma = np.sum(dout * xhat, axis=0)
+    dgamma = np.sum(dout * x_hat, axis=0)
     
     return dx, dgamma, dbeta
 
