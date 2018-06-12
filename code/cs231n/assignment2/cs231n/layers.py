@@ -55,10 +55,17 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     else:
         raise ValueError('Invalid forward batchnorm mode "%s"' % mode)
         
+    cache = (xhat)
     return out, cache
 
 def batchnorm_backward(dout, cache):
-    pass
+    (xhat) = cache
+    dx, dgamma, dbeta = None, None, None
+    
+    dbeta = np.sum(dout, axis=0)
+    dgamma = np.sum(dout * xhat, axis=0)
+    
+    return dx, dgamma, dbeta
 
 def batchnorm_backward_alt(dout, cache):
     pass

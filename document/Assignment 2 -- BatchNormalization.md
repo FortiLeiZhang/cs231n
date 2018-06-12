@@ -65,13 +65,61 @@ learnable params:
 
 BN通常放在FC/Conv之后，ReLU之前。
 
+#### Backprop
+BN的backprop是这次作业的难点，还要用两种方法做，这里一步一步尽量详细地把推导过程写出来。
+##### $\mathrm{d} \beta$
+$\mathrm{d} \beta$ 用维度分析法：
+$$
+y = \gamma \cdot \hat{x} + \beta
+$$
+其中 $y$ 形如(N, D)，$\gamma$ 和 $\beta$ 形如(D,)，$\hat{x}$ 形如(N, D)，所以 $\mathrm{d} \beta$必然为：
+```python
+dbeta = np.sum(dout, axis=0)
+```
+这里就不赘述了。
 
-
-
-
-
-
-
+##### $\mathrm{d} \gamma$
+其实 $\mathrm{d} \gamma$ 也可以用维度分析法得到，$\mathrm{d} y$ 和 $\mathrm{d} \hat{x}$ 都形如(N, D)，而 $\mathrm{d} \gamma$ 形如(D,)，显然 $\mathrm{d} \gamma$ 应为：
+```python
+dgamma = np.sum(xhat * dout, axis=0)
+```
+这里还是把过程写一下吧
+$$
+\begin{bmatrix}
+ y_{11}&   y_{12}&  ... &  y_{1D}\newline
+ y_{21}&   y_{22}&  ... &  y_{2D}\newline
+      & ...      &  ... & \newline
+  y_{N1}&   y_{N2}& ... &  y_{ND}
+\end{bmatrix} =
+\begin{bmatrix}
+\gamma_1& \gamma_2& ... & \gamma_D
+\end{bmatrix} \cdot
+\begin{bmatrix}
+ x_{11}&   x_{12}&  ... &  x_{1D}\newline
+ x_{21}&   x_{22}&  ... &  x_{2D}\newline
+      & ...      &  ... & \newline
+  x_{N1}&   x_{N2}& ... &  x_{ND}
+\end{bmatrix}
+$$
+展开可得：
+$$
+\begin{aligned}
+y_{11} = \gamma_1 \cdot x_{11}, \quad \quad & y_{12} = \gamma_2 \cdot x_{12}, & ... \newline
+y_{21} = \gamma_1 \cdot x_{21}, \quad \quad & y_{22} = \gamma_1 \cdot x_{22}, & ...
+\end{aligned}
+$$
+由此可得：
+$$
+\frac{\partial \mathrm{L}}{\partial \gamma_q} = \frac{\partial \mathrm{L}}{\partial y} \cdot \frac{\partial y}{\partial \gamma_q} = \sum_{ij} \frac{\partial \mathrm{L}}{\partial y_{ij}} \cdot \frac{\partial y_{ij}}{\partial \gamma_q}
+$$
+而仅当 $j = q$ 时有
+$$
+\frac{\partial y_{i,j}}{\partial \gamma_q} = x_{iq}
+$$
+其余均为0，故：
+$$
+\frac{\partial \mathrm{L}}{\partial \gamma_q} = \sum_{i=1}^{N} \frac{\partial \mathrm{L}}{\partial y_{iq}} \cdot \frac{\partial y_{iq}}{\partial \gamma_q} = \sum_{i=1}^{N}x_{iq} \cdot \mathrm{d} y_{iq}
+$$
 
 
 
