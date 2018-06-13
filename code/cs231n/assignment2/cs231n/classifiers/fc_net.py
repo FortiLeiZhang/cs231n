@@ -53,6 +53,7 @@ class FullyConnectedNet(object):
         self.num_layers = 1 + len(hidden_dims)
         self.dtype = dtype
         self.params = {}
+        self.norm_params = {}
         self.weight_scale = weight_scale
         self.hidden_dims = hidden_dims
         self.dropout = dropout
@@ -64,7 +65,16 @@ class FullyConnectedNet(object):
             w_name = 'W%d' %i
             b_name = 'b%d' %i
             self.params[w_name] = self.weight_scale * np.random.randn(in_dim, out_dim)
-            self.params[b_name] = np.zeros(all_dims[i])
+            self.params[b_name] = np.zeros(out_dim)
+
+            if i != self.num_layers and self.normalization is not None:
+                gamma_name = 'gamma%d' %i
+                beta_name = 'beta%d' %i
+                self.params[gamma_name] = np.ones(out_dim)
+                self.params[beta_name] = np.zeros(out_dim)
+
+                norm_name = 'norm%d' %i
+                self.norm_params[norm_name] = {}
     
     def loss(self, X, y=None):
         loss = 0.0
@@ -72,6 +82,7 @@ class FullyConnectedNet(object):
         grads = {}
         caches = {}
         out = X
+                
         for i in range(1, self.num_layers + 1):
             w_name = 'W%d' %i
             b_name = 'b%d' %i
@@ -79,10 +90,30 @@ class FullyConnectedNet(object):
             
             weight = self.params[w_name]
             bias = self.params[b_name]
-            
-            out, caches[cache_name] = affine_relu_forward(out, weight, bias)
             total_loss += 0.5 * self.reg * np.sum(weight * weight)
-        
+            
+            if i != self.num_layers:
+                if self.normalization is not None:
+                    gamma_name = 'gamma%d' %i
+                    beta_name = 'beta%d' %i
+                    norm_name = 'norm%d' %i
+                    gamma = self.params[gamma_name]
+                    beta = self.params[beta_name]
+                    norm_param = self.norm_params[norm_name]
+
+                    if self.normalization == 'batch_norm':
+                        if y is None:
+                            norm_param['mode'] = 'test'
+                        else:
+                            norm_param['mode'] = 'train'
+                        
+                    out, caches[cache_name] = affine_norm_relu_forward(out, weight, bias, gamma, beta, 
+                                                                           norm_param, norm_type=self.normalization)                 
+                else:
+                    out, caches[cache_name] = affine_relu_forward(out, weight, bias)
+            else:
+                out, caches[cache_name] = affine_forward(out, weight, bias)
+
         if y is None:
             return out
         
@@ -96,21 +127,21 @@ class FullyConnectedNet(object):
             
             weight = self.params[w_name]
             cache = caches[cache_name]
-            dout, dw, db = affine_relu_backward(dout, cache)
+            
+            if i != self.num_layers:
+                if self.normalization is not None:
+                    gamma_name = 'gamma%d' %i
+                    beta_name = 'beta%d' %i
+
+                    dout, dw, db, dgamma, dbeta = affine_norm_relu_backward(dout, cache, norm_type=self.normalization)
+                    grads[gamma_name] = dgamma
+                    grads[beta_name] = dbeta
+                else:
+                    dout, dw, db = affine_relu_backward(dout, cache)
+            else:
+                dout, dw, db = affine_backward(dout, cache)
+
             grads[w_name] = dw + self.reg * weight
             grads[b_name] = db
-        
-        return total_loss, grads
-        
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        return total_loss, grads

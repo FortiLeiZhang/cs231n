@@ -120,11 +120,77 @@ def batchnorm_backward_alt(dout, cache):
     
     return dx, dgamma, dbeta    
 
-def layernorm_forward(x, gamma, beta, ln_param):
-    pass
+def layernorm_forward(x, gamma, beta, ln_param=None):
+    if ln_param is None:
+        ln_param = {}
+
+    x = np.transpose(x, (1, 0))
+    N = x.shape[0]
+    out, cache = None, None
+    
+    eps = ln_param.get('eps', 1e-8)
+    momentum = ln_param.get('momentum', 0.9)
+    
+    x_mean = 1 / N * np.sum(x, axis=0)
+    x_mean_0 = x - x_mean
+    x_mean_0_sqr = x_mean_0 ** 2
+    x_var = 1 / N * np.sum(x_mean_0_sqr, axis=0)
+    x_std = np.sqrt(x_var + eps)
+    inv_x_std = 1 / x_std
+    x_hat = x_mean_0 * inv_x_std
+    
+    out = gamma * np.transpose(x_hat, (1, 0)) + beta
+    cache = (x_mean, x_mean_0, x_mean_0_sqr, x_var, x_std, inv_x_std, x_hat, gamma, eps)
+    
+    return out, cache
 
 def layernorm_backward(dout, cache):
-    pass
+    (x_mean, x_mean_0, x_mean_0_sqr, x_var, x_std, inv_x_std, x_hat, gamma, eps) = cache
+
+    
+    dx, dgamma, dbeta = None, None, None
+    
+    # out = gamma * x_hat + beta
+    # (N,D) (D,)    (N,D)   (D,)
+    Dx_hat = dout * gamma
+    Dx_hat = np.transpose(Dx_hat, (1, 0))
+    N = Dx_hat.shape[0]
+    
+    # x_hat = x_mean_0 * inv_x_std
+    # (N,D)   (N,D)      (D,)
+    Dx_mean_0 = Dx_hat * (inv_x_std)
+    Dinv_x_std = np.sum(Dx_hat * (x_mean_0), axis=0)
+    
+    # inv_x_std = 1 / x_std
+    # (D,)            (D,)
+    Dx_std = Dinv_x_std * (- x_std ** (-2))
+    
+    # x_std = np.sqrt(x_var + eps)
+    # (D,)           (D,)
+    Dx_var = Dx_std * (0.5 * (x_var + eps) ** (-0.5))
+    
+    # x_var = 1 / N * np.sum(x_mean_0_sqr, axis=0)
+    # (D,)                   (N,D)
+    Dx_mean_0_sqr = Dx_var * (1 / N * np.ones_like(x_mean_0_sqr))
+    
+    # x_mean_0_sqr = x_mean_0 ** 2
+    # (N,D)          (N,D)
+    Dx_mean_0 += Dx_mean_0_sqr * (2 * x_mean_0)
+    
+    # x_mean_0 = x - x_mean
+    # (N,D)     (N,D) (D,)
+    Dx = Dx_mean_0 * (1)
+    Dx_mean = np.sum(Dx_mean_0 * (-1), axis=0)
+    
+    # x_mean = 1 / N * np.sum(x, axis=0)
+    # (D,)                   (N,D)
+    Dx += Dx_mean * (1 / N * np.ones_like(x_hat))
+    
+    dx = np.transpose(Dx, (1, 0))
+    dbeta = np.sum(dout, axis=0)
+    dgamma = np.sum(dout * np.transpose(x_hat, (1, 0)), axis=0)
+    
+    return dx, dgamma, dbeta
 
 def dropout_forward(x, dropout_param):
     pass

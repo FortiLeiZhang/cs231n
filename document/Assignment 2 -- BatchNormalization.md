@@ -368,6 +368,62 @@ forth_part = inv_x_std ** 2 * x_mean_0 * np.sum(dout * x_mean_0, axis=0)
 
 dx = first_part * (second_part - third_part - forth_part)
 ```
+> Inline Question 1:
+>
+> Describe the results of this experiment. How does the scale of weight initialization affect models with/without batch normalization differently, and why?
+
+BN层的加入，大大降低了训练过程对weight初始化的依赖。
+
+> Inline Question 2:
+>
+> Describe the results of this experiment. What does this imply about the relationship between batch normalization and batch size? Why is this relationship observed?
+
+BN层的加入使得训练收敛的更快，acc更高，但是对test影响不是很大。
+另外，如果batch size太小，反而不如没有BN。
+
+> Inline Question 3:
+>
+> Which of these data preprocessing steps is analogous to batch normalization, and which is analogous to layer normalization?
+> 1. Scaling each image in the dataset, so that the RGB channels for each row of pixels within an image sums up to 1.
+> 2. Scaling each image in the dataset, so that the RGB channels for all pixels within an image sums up to 1.  
+> 3. Subtracting the mean image of the dataset from each image in the dataset.
+> 4. Setting all RGB values to either 0 or 1 depending on a given threshold.
+
+1、2类似于layer norm，3类似于batch norm。
+
+# Layer normalization
+
+Layer norm 和 batch norm 很像，都是用在FC层，只不过 batch norm 在 X 的 sample 方向取均值和方差，即将形如 (N, D) 的 X 取为形如 (1, D) 的均值和方差；而 layer norm 是在 X 的feature方向取均值和方差，即将形如 (N, D) 的 X 取为形如 (N, 1) 的均值和方差。因此，方便记忆的话，可以将 batch norm 记为 N norm 或者 axis=0 norm，将 layer norm 记为 D norm 或者 axis=1 norm。
+
+另外，layer norm 在 train 和 test 时计算方法均相同，而不用像 batch norm 那样需要记录一个 running mean 和 running var。
+
+这里还要特别注意的一点是，两者的 gamma 和 beta 都是形如 (1, D) 的。
+
+Layer norm 的实现同 batch norm 相似，只需要将输入转置，就可调用 batch norm 来实现。
+
+> Inline Question 4:
+>
+> When is layer normalization likely to not work well, and why?
+> 1. Using it in a very deep network
+> 2. Having a very small dimension of features
+> 3. Having a high regularization term
+
+从结果看，layer norm 的效果不是很好，特别是当 batch size 很小时。
+但是对深层NN来说，layer norm 可以加快训练速度。
+注意，reg只是施加于 weights 上的，并不施加于 norm 的参数 gamma 和 beta。如果 reg 很大的话，那么 affine 层的 weights 会被拉向0，输出值的大小也会减小，因此会减小 norm 层的作用。
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
