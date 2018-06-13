@@ -122,7 +122,7 @@ $$
 $$
 
 #### $\mathrm{d} x$：第一种方法
-![计算图](./images/BN_graph.png)
+![计算图](../images/BN_graph.png)
 先画出forward和backward的计算图，如图所示。forward的代码如下：
 ```python
 x_mean = 1 / N * np.sum(x, axis=0)
