@@ -359,7 +359,15 @@ $$
 $$
 \frac{\partial L}{\partial x} = \frac{\gamma}{N} \left( \sigma^2 + \epsilon \right)^{-\frac{1}{2}} \left( N \frac{\partial L}{\partial y} - \sum_{n}  \frac{\partial L}{\partial y_{n}} - \left( \sigma^2 + \epsilon \right)^{-1} (x-\mu) \sum_{n} \frac{\partial L}{\partial y_{n}} \left( x_{n} - \mu \right) \right)
 $$
+代码如下
+```python
+first_part = gamma * inv_x_std / N
+second_part = N * dout
+third_part = np.sum(dout, axis=0)
+forth_part = inv_x_std ** 2 * x_mean_0 * np.sum(dout * x_mean_0, axis=0)
 
+dx = first_part * (second_part - third_part - forth_part)
+```
 
 
 
