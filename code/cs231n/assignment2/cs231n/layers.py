@@ -110,7 +110,20 @@ def batchnorm_backward(dout, cache):
     return dx, dgamma, dbeta
 
 def batchnorm_backward_alt(dout, cache):
-    pass
+    (x_mean, x_mean_0, x_mean_0_sqr, x_var, x_std, inv_x_std, x_hat, gamma, eps) = cache
+    N = dout.shape[0]
+    dx, dgamma, dbeta = None, None, None
+    
+    first_part = gamma * inv_x_std / N
+    second_part = N * dout
+    third_part = np.sum(dout, axis=0)
+    forth_part = inv_x_std ** 2 * x_mean_0 * np.sum(dout * x_mean_0, axis=0)
+    
+    dx = first_part * (second_part - third_part - forth_part)
+    dbeta = np.sum(dout, axis=0)
+    dgamma = np.sum(dout * x_hat, axis=0)
+    
+    return dx, dgamma, dbeta    
 
 def layernorm_forward(x, gamma, beta, ln_param):
     pass
