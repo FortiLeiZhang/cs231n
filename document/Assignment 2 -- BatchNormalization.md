@@ -338,8 +338,27 @@ $$
 &= \sum_{n,d} \gamma_d \cdot  \frac{\partial L}{\partial y_{nd}} \cdot \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \left( \delta_{n, i} \cdot \delta_{d, j} - \frac{1}{N} \delta_{d, j} \right) - \frac{1}{N} \sum_{n,d} \gamma_d \cdot  \frac{\partial L}{\partial y_{nd}} \cdot \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \left( x_{id} - \mu_d \right) \cdot \delta_{d, j}
 \end{aligned}
 $$
-
-
+第一项
+$$
+\begin{aligned}
+& \quad \sum_{n,d} \gamma_d \cdot  \frac{\partial L}{\partial y_{nd}} \cdot \left( \sigma_d^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \left( \delta_{n, i} \cdot \delta_{d, j} - \frac{1}{N} \delta_{d, j} \right) \newline
+&= \sum_{n} \gamma_j \cdot  \frac{\partial L}{\partial y_{nj}} \cdot \left( \sigma_j^2 + \epsilon \right)^{-\frac{1}{2}} \cdot \left( \delta_{n, i} - \frac{1}{N} \right) \newline
+&= \gamma_j \cdot  \frac{\partial L}{\partial y_{ij}} \cdot \left( \sigma_j^2 + \epsilon \right)^{-\frac{1}{2}} - \frac{1}{N} \sum_{n} \gamma_j \cdot  \frac{\partial L}{\partial y_{nj}} \cdot \left( \sigma_j^2 + \epsilon \right)^{-\frac{1}{2}} \newline
+&= \gamma_j  \cdot \left( \sigma_j^2 + \epsilon \right)^{-\frac{1}{2}}  \left( \frac{\partial L}{\partial y_{ij}} - \frac{1}{N} \sum_{n}  \frac{\partial L}{\partial y_{nj}} \right)
+\end{aligned}
+$$
+第二项
+$$
+\begin{aligned}
+&\quad -\frac{1}{N} \sum_{n,d} \gamma_d \cdot  \frac{\partial L}{\partial y_{nd}} \cdot \left( \sigma_d^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nd} - \mu_d \right) \left( x_{id} - \mu_d \right) \cdot \delta_{d, j} \newline
+&= -\frac{1}{N} \sum_{n} \gamma_j \cdot  \frac{\partial L}{\partial y_{nj}} \cdot \left( \sigma_j^2 + \epsilon \right)^{-\frac{3}{2}}\left( x_{nj} - \mu_j \right) \left( x_{ij} - \mu_j \right) \newline
+&= -\frac{1}{N} \gamma_j  \left( \sigma_j^2 + \epsilon \right)^{-\frac{3}{2}} \left( x_{ij} - \mu_j \right) \sum_{n} \frac{\partial L}{\partial y_{nj}} \left( x_{nj} - \mu_j \right)
+\end{aligned}
+$$
+最后的结果为
+$$
+\frac{\partial L}{\partial x} = \frac{\gamma}{N} \left( \sigma^2 + \epsilon \right)^{-\frac{1}{2}} \left( N \frac{\partial L}{\partial y} - \sum_{n}  \frac{\partial L}{\partial y_{n}} - \left( \sigma^2 + \epsilon \right)^{-1} (x-\mu) \sum_{n} \frac{\partial L}{\partial y_{n}} \left( x_{n} - \mu \right) \right)
+$$
 
 
 
