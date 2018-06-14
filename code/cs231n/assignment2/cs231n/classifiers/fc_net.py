@@ -57,6 +57,7 @@ class FullyConnectedNet(object):
         self.weight_scale = weight_scale
         self.hidden_dims = hidden_dims
         self.dropout = dropout
+        self.dropout_params = {}
         
         all_dims = [input_dim] + hidden_dims + [num_classes]
         for i in range(1, self.num_layers + 1):
@@ -75,6 +76,11 @@ class FullyConnectedNet(object):
 
                 norm_name = 'norm%d' %i
                 self.norm_params[norm_name] = {}
+                
+        if self.use_dropout:
+            self.dropout_params['p'] = self.dropout
+            if seed is not None:
+                self.dropout_params['seed'] = seed
     
     def loss(self, X, y=None):
         loss = 0.0
@@ -111,6 +117,14 @@ class FullyConnectedNet(object):
                                                                            norm_param, norm_type=self.normalization)                 
                 else:
                     out, caches[cache_name] = affine_relu_forward(out, weight, bias)
+                    
+                if self.use_dropout:
+                    dropout_cache_name = 'dropout%d' %i
+                    if y is None:
+                        self.dropout_params['mode'] = 'test'
+                    else:
+                        self.dropout_params['mode'] = 'train'
+                    out, caches[dropout_cache_name] = dropout_forward(out, self.dropout_params)
             else:
                 out, caches[cache_name] = affine_forward(out, weight, bias)
 
@@ -129,6 +143,11 @@ class FullyConnectedNet(object):
             cache = caches[cache_name]
             
             if i != self.num_layers:
+                if self.use_dropout:
+                    dropout_cache_name = 'dropout%d' %i
+                    dropout_cache = caches[dropout_cache_name]
+                    dout = dropout_backward(dout, dropout_cache)
+
                 if self.normalization is not None:
                     gamma_name = 'gamma%d' %i
                     beta_name = 'beta%d' %i

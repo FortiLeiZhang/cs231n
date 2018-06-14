@@ -193,10 +193,37 @@ def layernorm_backward(dout, cache):
     return dx, dgamma, dbeta
 
 def dropout_forward(x, dropout_param):
-    pass
+    out, cache, mask = None, None, None
+    
+    p = dropout_param['p']
+    mode = dropout_param['mode']
+    if 'seed' in dropout_param:
+        np.random.seed(dropout_param['seed'])
+
+    if mode == 'train':
+        mask = (np.random.rand(*x.shape) < p) / p
+        out = x * mask
+        cache = (mask, dropout_param)
+    elif mode == 'test':
+        out = x
+    else:
+        raise ValueError('Unrecognized mode: %s' %mode)
+        
+    cache = (mask, mode)
+    out = out.astype(x.dtype, copy=False)
+    return out, cache
 
 def dropout_backward(dout, cache):
-    pass
+    (mask, mode) = cache
+    
+    if mode == 'train':
+        dx = dout * mask
+    elif mode == 'test':
+        dx = dout
+    else:
+        raise ValueError('Unrecognized mode: %s' %mode)    
+    
+    return dx
 
 def conv_forward_naive(x, w, b, conv_param):
     pass
