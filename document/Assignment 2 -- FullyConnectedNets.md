@@ -92,12 +92,32 @@ w += - learning_rate * dw / (np.sqrt(cache) + eps)
 
 因为cache是dw平方的叠加，随着学习的深入，这个值会越来越大，而在w更新的过程中需要除以cache，这会导致实际上的learnig rate会越来越小。
 
+### 训练一个好的FC网络
+在完成 BN 和 Dropout 后，返回来完成最后一步：用上完成的所有方法来实现一个好的 FC 网络。
 
+首先粗调 learning rate 和 weight scale ，这里先用一个大范围搜索
+```python
+lr = np.random.uniform(1e-5, 1e-1)
+ws = np.random.uniform(1e-5, 1e-1)
+```
+随机100次，每次跑10个 epoch，最好的结果在
+>  Epoch 10 / 10 - best_val_acc: 0.437000
+>
+>learning_rate is: 1.79e-05, weight_scale is: 7.45e-04
 
+然后将范围缩小
+```python
+lr = np.random.uniform(1.5e-5, 2.0e-5)
+ws = np.random.uniform(7e-4, 8e-4)
+```
+最好结果为
+> Epoch 10 / 10 - best_val_acc: 0.458000
+>
+> learning_rate is: 1.91e-05, weight_scale is: 7.60e-04
 
+固定 learning_rate = 1.91e-05，weight_scale = 7.60e-04，训练100个 epoch。将 loss_history，train_acc_history，val_acc_history 画出来看看。loss 的噪声太大，说明 batch size 有点小，loss 曲线貌似刚开始趋缓，可以再增加 epoch 看看。train 和 val 的差距开始变大，说明要 overfitting 了，考虑增加 reg。
 
-
-
+reg 加到 1.5, epoch 加到 1000，batch size 加到 200，试一下。最后再把hidden dim 增大到100 试试。
 
 
 
