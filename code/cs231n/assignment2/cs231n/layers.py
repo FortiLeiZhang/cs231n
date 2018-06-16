@@ -226,7 +226,31 @@ def dropout_backward(dout, cache):
     return dx
 
 def conv_forward_naive(x, w, b, conv_param):
-    pass
+    s = conv_param.get('stride', 1)
+    pad = conv_param.get('pad', 0)
+    
+    N, in_c, in_h, in_w = x.shape
+    K, in_c, f_h, f_w = w.shape
+    K = b.shape[0]
+    
+    assert (in_h - f_h + 2 * pad) % s == 0, 'Filter height mismatch.' 
+    assert (in_w - f_w + 2 * pad) % s == 0, 'Filter width mismatch.'
+    
+    out_h = np.uint8((in_h - f_h + 2 * pad) / s + 1)
+    out_w = np.uint8((in_w - f_w + 2 * pad) / s + 1)
+    out = np.zeros((N, K, out_h, out_w))
+    cache = None
+    
+    pad_x = np.pad(x, ((0, 0), (0, 0), (pad, pad), (pad, pad)), 'constant')
+    
+    for i in range(N):
+        for j in range(K):
+            for ww in range(out_w):
+                for hh in range(out_h):
+                    out[i, j, hh, ww] = np.sum(pad_x[i, :, (s*hh):(s*hh+f_h), (s*ww):(s*ww+f_w)] * w[j, :, :, :]) + b[j]
+    
+    cache = (x, w, b, conv_param)
+    return out, cache
 
 def conv_backward_naive(dout, cache):
     pass

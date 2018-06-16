@@ -26,9 +26,9 @@ Filter: K
 
 Output: $W_2 \times H_2 \times K$
 
-        $W_2 = (W_1 - F + 2 * P) / S + 1$，
+$W_2 = (W_1 - F + 2 * P) / S + 1$
 
-        $H_2 = (H_1 - F + 2 * P) / S + 1$
+$H_2 = (H_1 - F + 2 * P) / S + 1$
 
 #### Convolution 的计算
 Naive 的计算方法就是沿着输入矩阵滑动点乘；计算速度更快的方法是将输入矩阵和filter矩阵都展成 vector 就行矩阵相乘，这样的缺点是内存消耗大。
