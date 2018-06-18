@@ -126,13 +126,36 @@ $$
 $$
 将结果写为如下形式：
 $$
-\mathrm{d} w = \begin{bmatrix}
-\partial y_{11}x_{11} + \partial y_{12}x_{12} + \partial y_{21}x_{21} + \partial y_{22}x_{22}& \partial y_{11}x_{12} + \partial y_{12}x_{13} + \partial y_{21}x_{22} + \partial y_{22}x_{23}& \newline
-\partial y_{11}x_{21} + \partial y_{12}x_{22} + \partial y_{21}x_{31} + \partial y_{22}x_{32}& \partial y_{11}x_{22} + \partial y_{12}x_{23} + \partial y_{21}x_{32} + \partial y_{22}x_{33}& \newline
+\mathrm{d} w = \partial y_{11} \cdot
+\begin{bmatrix}
+ x_{11}&   x_{12}\newline
+ x_{21}&   x_{22}
+\end{bmatrix} + \partial y_{12} \cdot
+\begin{bmatrix}
+ x_{12}&   x_{13}\newline
+ x_{22}&   x_{23}
+\end{bmatrix} + \partial y_{21} \cdot
+\begin{bmatrix}
+ x_{21}&   x_{22}\newline
+ x_{31}&   x_{32}
+\end{bmatrix} + \partial y_{22} \cdot
+\begin{bmatrix}
+ x_{22}&   x_{23}\newline
+ x_{32}&   x_{33}
 \end{bmatrix}
 $$
+显然，dw 的计算方法是首先用 $\partial y_{11}$ 与 x 的第一个形如 w 的矩阵相乘，然后移动 stride 步，再用 $\partial y_{12}$ 与 x 的第二个形如 w 的矩阵相乘，将所得结果按位相加。
 
-
+同样，这里也要注意的是：
+1. 如果 pad 不为0的话，要针对扩展后的 x_pad 进行计算，但是得到的结果即为 dw，不需要strip。
+2. 滑动的次数依旧由 dout 决定，步长由 stride 决定。
+```python
+for i in range(N):
+    for oc in range(K):
+        for ww in range(out_w):
+            for hh in range(out_h):
+                dw[oc, ...] += dout[i, oc, hh, ww] * x_pad[i, :, (s*hh):(s*hh+f_h), (s*ww):(s*ww+f_w)]
+```
 
 
 
