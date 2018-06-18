@@ -8,16 +8,129 @@
 Naive 的实现没什么可说的，这里要注意的是输入输出的维度，和np.pad函数的使用。
 
 #### Backward
+这里 x 形如 (N, C, in_H, in_W)，w 形如 (K, C, f_H, f_W)，y 形如 (N, K, out_H, out_W)，b 形如(K, )，dx, dw, dout分别与 x, w, y 形状相同。
 
+##### db
+db 仅与 dout 有关，且 b 形如(K, )，dout 形如 (N, K, out_H, out_W)，所以根据维度分析，可以得到:
+```python
+db = np.sum(dout, axis=(0, 2, 3))
+```
 
+##### dx
+这里写出 dx 和 dw 的闭式解很复杂，而且不容易写出代码，所以这里用一个例子来推出 dx 和 dw 的计算过程，根据此计算过程可以将代码写出。这里 stride = 1，pad = 0，x，w，y为：
+$$
+x = \begin{bmatrix}
+ x_{11}&   x_{12}&  x_{13}\newline
+ x_{21}&   x_{22}&  x_{23}\newline
+ x_{31}&   x_{32}&  x_{33}
+\end{bmatrix}, \quad
+w = \begin{bmatrix}
+ w_{11}&   w_{12}\newline
+ w_{21}&   w_{22}
+\end{bmatrix}, \quad
+y = \begin{bmatrix}
+ y_{11}&   y_{12}\newline
+ y_{21}&   y_{22}
+\end{bmatrix}
+$$
+将 $y = x \times w$ 展开：
+$$
+\begin{aligned}
+y_{11} &= w_{11}x_{11} + w_{12}x_{12} + w_{21}x_{21} + w_{22}x_{22} \newline
+y_{12} &= w_{11}x_{12} + w_{12}x_{13} + w_{21}x_{22} + w_{22}x_{23} \newline
+y_{21} &= w_{11}x_{21} + w_{12}x_{22} + w_{21}x_{31} + w_{22}x_{32} \newline
+y_{22} &= w_{11}x_{22} + w_{12}x_{23} + w_{21}x_{32} + w_{22}x_{33} \newline
+\end{aligned}
+$$
+所以：
+$$
+\mathrm{d} x = \begin{bmatrix}
+ \frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{11}}&   \frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{12}}&  \frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{13}}\newline
+ \frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{21}}&   \frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{22}}&  \frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{23}}\newline
+ \frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{31}}&   \frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{32}}&  \frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{33}}
+\end{bmatrix}
+$$
+与 $x_{11}$ 相关的仅有 $y_{11}$，所以第一项 $\frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{11}} = \partial y_{11} \cdot w_{11}$，与 $x_{12}$ 相关的有两项 $y_{11}$ 和 $y_{12}$，所以第二项 $\frac{\partial L}{\partial y}\frac{\partial y}{\partial x_{12}} = \partial y_{11} \cdot w_{12} + \partial y_{12} \cdot w_{11}$，依次类推，将最后结果写成如下形式就一目了然了：
+$$
+\mathrm{d} x = \begin{bmatrix}
+\partial y_{11} \cdot w_{11}&   \partial y_{11} \cdot w_{12} + &  \newline
+&\partial y_{12} \cdot w_{11} & \partial y_{12} \cdot w_{12} \newline
+& & \newline
+ \partial y_{11} \cdot w_{21} + &  \partial y_{11} \cdot w_{22} + &   \newline
+  &  \partial y_{12} \cdot w_{21} + & \partial y_{12} \cdot w_{22} \newline
+ \partial y_{21} \cdot w_{11} &  \partial y_{21} \cdot w_{12} + &  \newline
+  &  \partial y_{22} \cdot w_{11} & \partial y_{22} \cdot w_{12} \newline
+ & & \newline
+ \partial y_{21} \cdot w_{21} &  \partial y_{21} \cdot w_{22} + &  \newline
+  &  \partial y_{22} \cdot w_{21} & \partial y_{22} \cdot w_{22} \newline
+\end{bmatrix}
+$$
+显然，dx的计算方法是在一个形如 x 的矩阵上滑动，先计算
+$$
+\partial y_{11} \cdot
+\begin{bmatrix}
+ w_{11}&   w_{12}\newline
+ w_{21}&   w_{22}
+\end{bmatrix}
+$$
+并将结果放在 dx 的第一个形如 w 的块上，然后计算
+$$
+\partial y_{12} \cdot
+\begin{bmatrix}
+ w_{11}&   w_{12}\newline
+ w_{21}&   w_{22}
+\end{bmatrix}
+$$
+滑动 stride，并将结果放在 dx 的第二个形如 w 的块上，依次类推。
 
+这里需要注意的是：
+1. 例子里的 pad = 0。如果 pad 不为0的话，所有对 x 的计算都要针对扩充后的 x_pad，得到的结果也是 dx_pad，最后返回的结果 dx 要将 dx_pad 去掉 pad。
+2. 滑动的次数由 dout 的形状决定，滑动的步长由 stride 决定。
 
+以上仅是针对 x 的最后两个维度的计算，前两个维度加循环即可
+```python
+for i in range(N):
+    for oc in range(K):
+        for ww in range(out_w):
+            for hh in range(out_h):
+                dpad_x[i, :, (s*hh):(s*hh+f_h), (s*ww):(s*ww+f_w)] += dout[i, oc, hh, ww] * w[oc, ...]
 
+dx = dpad_x[:, :, p:(in_h+p), p:(in_w+p)]
+```
 
-
-
-
-
+##### dw
+根据如上同样的方法：
+$$
+\mathrm{d} w = \begin{bmatrix}
+ \frac{\partial L}{\partial y}\frac{\partial y}{\partial w_{11}}&   \frac{\partial L}{\partial y}\frac{\partial y}{\partial w_{12}} \newline
+ \frac{\partial L}{\partial y}\frac{\partial y}{\partial w_{21}}&   \frac{\partial L}{\partial y}\frac{\partial y}{\partial w_{22}} \newline
+\end{bmatrix}
+$$
+根据$y = x \times w$ 展开式：
+$$
+\begin{aligned}
+y_{11} &= w_{11}x_{11} + w_{12}x_{12} + w_{21}x_{21} + w_{22}x_{22} \newline
+y_{12} &= w_{11}x_{12} + w_{12}x_{13} + w_{21}x_{22} + w_{22}x_{23} \newline
+y_{21} &= w_{11}x_{21} + w_{12}x_{22} + w_{21}x_{31} + w_{22}x_{32} \newline
+y_{22} &= w_{11}x_{22} + w_{12}x_{23} + w_{21}x_{32} + w_{22}x_{33} \newline
+\end{aligned}
+$$
+可以得到：
+$$
+\begin{aligned}
+\partial w_{11} &= \partial y_{11}x_{11} + \partial y_{12}x_{12} + \partial y_{21}x_{21} + \partial y_{22}x_{22} \newline
+\partial w_{12} &= \partial y_{11}x_{12} + \partial y_{12}x_{13} + \partial y_{21}x_{22} + \partial y_{22}x_{23} \newline
+\partial w_{21} &= \partial y_{11}x_{21} + \partial y_{12}x_{22} + \partial y_{21}x_{31} + \partial y_{22}x_{32} \newline
+\partial w_{22} &= \partial y_{11}x_{22} + \partial y_{12}x_{23} + \partial y_{21}x_{32} + \partial y_{22}x_{33} \newline
+\end{aligned}
+$$
+将结果写为如下形式：
+$$
+\mathrm{d} w = \begin{bmatrix}
+\partial y_{11}x_{11} + \partial y_{12}x_{12} + \partial y_{21}x_{21} + \partial y_{22}x_{22}& \partial y_{11}x_{12} + \partial y_{12}x_{13} + \partial y_{21}x_{22} + \partial y_{22}x_{23}& \newline
+\partial y_{11}x_{21} + \partial y_{12}x_{22} + \partial y_{21}x_{31} + \partial y_{22}x_{32}& \partial y_{11}x_{22} + \partial y_{12}x_{23} + \partial y_{21}x_{32} + \partial y_{22}x_{33}& \newline
+\end{bmatrix}
+$$
 
 
 

@@ -248,12 +248,35 @@ def conv_forward_naive(x, w, b, conv_param):
             for ww in range(out_w):
                 for hh in range(out_h):
                     out[i, j, hh, ww] = np.sum(pad_x[i, :, (s*hh):(s*hh+f_h), (s*ww):(s*ww+f_w)] * w[j, :, :, :]) + b[j]
-    
+
     cache = (x, w, b, conv_param)
     return out, cache
 
 def conv_backward_naive(dout, cache):
-    pass
+    (x, w, b, conv_param) = cache
+    dx = np.zeros_like(x)
+    dw = np.zeros_like(w)
+    db = np.zeros_like(b)
+
+    s = conv_param['stride']
+    p = conv_param['pad']
+    x_pad = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), 'constant')
+    dx_pad = np.zeros_like(x_pad)
+
+    N, in_c, in_h, in_w = x.shape
+    N, K, out_h, out_w = dout.shape
+    K, in_c, f_h, f_w = w.shape
+
+    for i in range(N):
+        for oc in range(K):
+            for ww in range(out_w):
+                for hh in range(out_h):
+                    dx_pad[i, :, (s*hh):(s*hh+f_h), (s*ww):(s*ww+f_w)] += dout[i, oc, hh, ww] * w[oc, ...]
+                    dw[oc, ...] += dout[i, oc, hh, ww] * x_pad[i, :, (s*hh):(s*hh+f_h), (s*ww):(s*ww+f_w)]
+
+    dx = dx_pad[:, :, p:(in_h+p), p:(in_w+p)]
+    db = np.sum(dout, axis=(0, 2, 3))
+    return dx, dw, db
 
 def max_pool_forward_naive(x, pool_param):
     pass
