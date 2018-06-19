@@ -412,14 +412,20 @@ Layer norm 的实现同 batch norm 相似，只需要将输入转置，就可调
 但是对深层NN来说，layer norm 可以加快训练速度。
 注意，reg只是施加于 weights 上的，并不施加于 norm 的参数 gamma 和 beta。如果 reg 很大的话，那么 affine 层的 weights 会被拉向0，输出值的大小也会减小，因此会减小 norm 层的作用。
 
+# Spatial batch Normalization
+这里所谓的 spatial batch Normalization ，实际上就是 BN 的CNN banben版本。只不过 BN 是将形如 (N, D) 的 X 取为形如 (1, D) 的均值和方差；而 SBN 是将形如 (N, C, H, W) 的 X 取形如 (1, C, 1, 1) 的均值和方差，需要训练的 gamma 和 beta 也是形如 (1, C, 1, 1) 的。
 
+作业里的 SBN，只需要将输入形如 (N, C, H, W) 的 X，首先转置为 (N, H, W, C)，然后 reshape 为 (N*H*W, C)，调用 BN 的 forward 和 backward 进行计算，最后将结果再转置会原来的形状即可。
 
+# Instance Normalization
+Instance normalization 是将形如 (N, C, H, W) 的 X 取形如 (N, C, 1, 1) 的均值和方差，需要训练的 gamma 和 beta 也是形如 (1, C, 1, 1) 的。
 
+# Group Normalization
+Group Normalization 是 layer normalization 在 CNN 中的改进版本。
+Layer normalization 据说在 CNN 中的效果不是很好，所以要加以改进。在 CNN 中，layer normalization 是一次对所有的 C 取均值和方差，而 group normalization 是将 C 分为几组，每次仅在组内取均值和方差。
+需要训练的 gamma 和 beta 也是形如 (1, C, 1, 1) 的。
 
-
-
-
-
+作业中的也没什么好说的，只要把输入适当的 split 就可以了。
 
 
 

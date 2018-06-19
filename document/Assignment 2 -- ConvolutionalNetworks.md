@@ -157,11 +157,17 @@ for i in range(N):
                 dw[oc, ...] += dout[i, oc, hh, ww] * x_pad[i, :, (s*hh):(s*hh+f_h), (s*ww):(s*ww+f_w)]
 ```
 
+## Max-Pooling
+forward 和 backward 都很简单，写代码的时候注意一下就可以了。
 
+## Fast Layers
+这是用矩阵相乘的方法实现 convolution，需要很精巧的设计将矩阵展开成向量。具体实现太精巧了，没仔细研究。
 
-
-
-
+## Three Layer ConvNet
+作业里的这个三层 CNN 设计的不是很好，可能是为了简单一些。这里只把作业中新建网络时检查的几个点再强调一下。
+1. Sanity check loss：要做的是随机初始化一个网络，softmax 的 loss 应该为 $\log(N)$，svm 的 loss 应该为 $N-1$。
+2. Gradient check：检查梯度的公式计算结果和数据计算结果是不是一致。
+3. Overfit small data：找个小的数据集，然后 overfit 此数据集。
 
 
 

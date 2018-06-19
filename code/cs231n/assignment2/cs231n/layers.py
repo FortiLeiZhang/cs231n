@@ -120,6 +120,32 @@ def batchnorm_backward_alt(dout, cache):
     
     return dx, dgamma, dbeta    
 
+def spatial_batchnorm_forward(x, gamma, beta, bn_param):
+    N, C, H, W = x.shape
+
+    _x = x.transpose((0, 2, 3, 1))
+    _x = _x.reshape(-1, C) 
+    
+    _out, cache = batchnorm_forward(_x, gamma, beta, bn_param)
+    
+    _out = _out.reshape((N, H, W, C))
+    out = _out.transpose((0, 3, 1, 2))
+
+    return out, cache
+
+def spatial_batchnorm_backward(dout, cache):
+    N, C, H, W = dout.shape
+
+    _dout = dout.transpose((0, 2, 3, 1))
+    _dout = _dout.reshape(-1, C) 
+    
+    _dx, dgamma, dbeta = batchnorm_backward(_dout, cache)
+    
+    _dx = _dx.reshape((N, H, W, C))
+    dx = _dx.transpose((0, 3, 1, 2))
+
+    return dx, dgamma, dbeta
+
 def layernorm_forward(x, gamma, beta, ln_param=None):
     if ln_param is None:
         ln_param = {}
@@ -129,7 +155,6 @@ def layernorm_forward(x, gamma, beta, ln_param=None):
     out, cache = None, None
     
     eps = ln_param.get('eps', 1e-8)
-    momentum = ln_param.get('momentum', 0.9)
     
     x_mean = 1 / N * np.sum(x, axis=0)
     x_mean_0 = x - x_mean
@@ -146,7 +171,6 @@ def layernorm_forward(x, gamma, beta, ln_param=None):
 
 def layernorm_backward(dout, cache):
     (x_mean, x_mean_0, x_mean_0_sqr, x_var, x_std, inv_x_std, x_hat, gamma, eps) = cache
-
     
     dx, dgamma, dbeta = None, None, None
     
@@ -189,6 +213,52 @@ def layernorm_backward(dout, cache):
     dx = np.transpose(Dx, (1, 0))
     dbeta = np.sum(dout, axis=0)
     dgamma = np.sum(dout * np.transpose(x_hat, (1, 0)), axis=0)
+    
+    return dx, dgamma, dbeta
+
+def spatial_groupnorm_forward(x, gamma, beta, G, gn_param):
+    if gn_param is None:
+        gn_param = {}
+    eps = gn_param.get('eps', 1e-8)
+    
+    N, C, H, W = x.shape
+    _x = x.reshape((N, G, C//G, H, W))
+    
+    x_mean = 1 / (C//G*H*W) * np.sum(_x, axis=(2, 3, 4), keepdims=True)
+    x_mean_0 = _x - x_mean
+    x_mean_0_sqr = x_mean_0 ** 2
+    x_var = 1 / (C//G*H*W) * np.sum(x_mean_0_sqr, axis=(2, 3, 4), keepdims=True)
+    x_std = np.sqrt(x_var + eps)
+    inv_x_std = 1 / x_std
+    x_hat = x_mean_0 * inv_x_std
+    
+    x_hat = x_hat.reshape((N, C, H, W))
+    out = gamma * x_hat + beta
+    
+    cache = (x_mean, x_mean_0, x_mean_0_sqr, x_var, x_std, inv_x_std, x_hat, gamma, eps, G)
+    
+    return out, cache
+
+def spatial_groupnorm_backward(dout, cache):
+    (x_mean, x_mean_0, x_mean_0_sqr, x_var, x_std, inv_x_std, x_hat, gamma, eps, G) = cache
+    N, C, H, W = dout.shape
+
+    Dx_hat = dout * gamma
+    Dx_hat = Dx_hat.reshape((N, G, C//G, H, W))
+
+    Dx_mean_0 = Dx_hat * (inv_x_std)
+    Dinv_x_std = np.sum(Dx_hat * (x_mean_0), axis=(2, 3, 4), keepdims=True)
+    Dx_std = Dinv_x_std * (- x_std ** (-2))
+    Dx_var = Dx_std * (0.5 * (x_var + eps) ** (-0.5))
+    Dx_mean_0_sqr = Dx_var * (1 / (C//G*H*W) * np.ones_like(x_mean_0_sqr))
+    Dx_mean_0 += Dx_mean_0_sqr * (2 * x_mean_0)
+    Dx = Dx_mean_0 * (1)
+    Dx_mean = np.sum(Dx_mean_0 * (-1), axis=(2, 3, 4), keepdims=True)
+    Dx += Dx_mean * (1 / (C//G*H*W) * np.ones_like(Dx_hat))
+
+    dx = Dx.reshape((N, C, H, W))
+    dbeta = np.sum(dout, axis=(0, 2, 3), keepdims=True)
+    dgamma = np.sum(dout * x_hat, axis=(0, 2, 3), keepdims=True)
     
     return dx, dgamma, dbeta
 
@@ -279,22 +349,45 @@ def conv_backward_naive(dout, cache):
     return dx, dw, db
 
 def max_pool_forward_naive(x, pool_param):
-    pass
+    pool_width = pool_param['pool_width']
+    pool_height = pool_param['pool_height']
+    s = pool_param['stride']
+    
+    N, C, in_h, in_w = x.shape
+    
+    assert (in_h - pool_height) % s == 0, 'Pool height mismatch.' 
+    assert (in_w - pool_width) % s == 0, 'Pool width mismatch.'
+    
+    out_h = np.uint8((in_h - pool_height) / s + 1)
+    out_w = np.uint8((in_w - pool_width) / s + 1)
+    
+    out = np.zeros((N, C, out_h, out_w))
+    cache = None
+    
+    for ww in range(out_w):
+        for hh in range(out_h):
+            out[:, :, hh, ww] = np.max(x[:, :, s*hh:s*hh+pool_height, s*ww:s*ww+pool_width], axis=(2, 3))
+    
+    cache = (x, pool_param)
+    return out, cache
 
 def max_pool_backward_naive(dout, cache):
-    pass
-
-def spatial_batchnorm_forward(x, gamma, beta, bn_param):
-    pass
-
-def spatial_batchnorm_backward(dout, cache):
-    pass
-
-def spatial_groupnorm_forward(x, gamma, beta, G, gn_param):
-    pass
-
-def spatial_groupnorm_backward(dout, cache):
-    pass
+    (x, pool_param) = cache
+    pool_width = pool_param['pool_width']
+    pool_height = pool_param['pool_height']
+    s = pool_param['stride']
+    
+    _, _, out_h, out_w = dout.shape
+    dx = np.zeros_like(x)
+    
+    for ww in range(out_w):
+        for hh in range(out_h):
+            _max = np.max(x[:, :, s*hh:s*hh+pool_height, s*ww:s*ww+pool_width], axis=(2, 3), keepdims=True)
+            dx_idx = (x[:, :, s*hh:s*hh+pool_height, s*ww:s*ww+pool_width] == _max)
+            dout_block = dout[:, :, hh, ww]
+            dx[:, :, s*hh:s*hh+pool_height, s*ww:s*ww+pool_width] = dx_idx * dout_slice[:, :, np.newaxis, np.newaxis]
+    
+    return dx
 
 def svm_loss(x, y):
     N = x.shape[0]
