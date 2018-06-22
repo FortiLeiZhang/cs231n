@@ -143,19 +143,3 @@ class Solver(object):
 
         self.model.params = self.best_params
         print('Epoch %d / %d - best_val_acc: %f' % (self.epoch, self.num_epoch, self.best_val_acc))
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
