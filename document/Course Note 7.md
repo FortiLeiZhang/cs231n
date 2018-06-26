@@ -30,7 +30,7 @@ def rel_error(x, y):
 
 ### 训练过程中的debug
 ###### learning rate
-![Learning rate](../images/loss_1.jpg)
+![Learning rate](https://github.com/FortiLeiZhang/cs231n/raw/master/images/loss_1.jpg)
 
 黄色：loss飞了，lr太大
 
@@ -41,7 +41,7 @@ def rel_error(x, y):
 绿色：开始下降太陡，然后不再下降，lr太大
 
 ###### batch size
-![batch size](../images/loss_2.jpg)
+![batch size](https://github.com/FortiLeiZhang/cs231n/raw/master/images/loss_2.jpg)
 
 噪声太多，说明batch size太小；曲线的趋势说明lr还可以
 
