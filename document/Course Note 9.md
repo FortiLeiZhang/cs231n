@@ -30,6 +30,21 @@ $W_2 = (W_1 - F + 2 * P) / S + 1$
 
 $H_2 = (H_1 - F + 2 * P) / S + 1$
 
+这里要插一段，在 Resnet 中，输入图片的大小是 $224 \times 224$ 的，但是它的第一层 filter 是
+```python
+self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=7, stride=2, padding=3, bias=False)
+```
+这里输入与 filter 并不匹配，而且后面紧跟的 max pool 也不匹配
+```python
+self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+```
+实际上这里在计算的时候把最右侧补的一列 0 给忽略掉了，所以这一层的输出大小为：
+>(224 - 7 + 2 * 3) / 2 + 1 = 112
+>
+> (112 - 3 + 2 * 1) / 2 + 1 = 56
+
+
+
 #### Convolution 的计算
 Naive 的计算方法就是沿着输入矩阵滑动点乘；计算速度更快的方法是将输入矩阵和filter矩阵都展成 vector 就行矩阵相乘，这样的缺点是内存消耗大。
 
