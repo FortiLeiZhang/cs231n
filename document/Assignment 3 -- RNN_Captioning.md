@@ -1,4 +1,4 @@
-[Assignment3 | RNN Captioning]()
+[Assignment3 | RNN Captioning](https://github.com/FortiLeiZhang/cs231n/blob/master/code/cs231n/assignment3/RNN_Captioning.ipynb)
 ---
 这部分实际上做了两件事情，首先建立一个 RNN，然后以此 RNN 为基础，训练一个模型来完成图片 caption 的工作。我感觉作业中的代码先后顺序有些混乱，这里依照自己的理解，把内容重新组织一下。
 
@@ -23,7 +23,7 @@ print(decode_captions(data['train_captions'][1], data['idx_to_word']))
 train feature 是直接取自 VGG16 的第 fc7 层，也就是从 4096 映射到 1000 个 class 的前一层，所以是 4096 维的。这里为了减少计算量，使用 PCA 将维度减小到 512 维。
 
 ### Vanilla RNN
-![CNN_time_cap](../images/CNN_time_capsule.jpg)
+![CNN_time_cap](https://github.com/FortiLeiZhang/cs231n/raw/master/images/CNN_time_capsule.jpg)
 RNN 一次处理一个长度为 T 的时间序列 x(0), x(t), ... , x(T)，其中，隐状态 h(t) 由该时刻输入 x(t) 和上一时刻隐状态 h(t-1) 共同决定：
 $$
 h(t) = \mathrm{tg} \left ( W_x \cdot x(t) + W_h \cdot h(t-1) + b_h \right )
@@ -84,6 +84,84 @@ dbh += dbh_
 
 #### RNN: full rnn step
 顺带又加了一种实现方式，即在每一时刻，不但计算出下一时刻的隐状态，同时计算出该时刻的 loss。
+
+### Word Embedding
+word embedding 的作用实际上是一个空间的映射，它将用 int 型数字编码的单词，映射到一个 D 维度的 float 型数字编码的空间。具体来说，将一个单词用一个整型数字来表示，所有的单词组成了一个词汇表，这个词汇表的词汇量大小是 V，词汇表中每一个单词的编码值应该在 [0, V) 范围内。然后定义一个形如 (V, D) 的映射关系 W。W 中的每一行是一个 D 维的 float 向量，对应一个单词在词汇表中的 offset。这样，就将一个单词由一个整型数字表示映射到一个 D 维的 float 向量。
+
+举个例子，单词 cat 在词汇表中的 offset 为 10，在 W 中，第10行的向量是 $[0.21428571,  0.28571429,  0.35714286]$，那么单词 cat 就映射成了一个三维的向量 $[0.21428571,  0.28571429,  0.35714286]$。
+
+在这里，单词在词汇表中的 offset 是固定的，而映射关系 W 是通过学习而来的参数。
+
+#### forward
+```python
+N, T = x.shape
+V, D = W.shape
+out = np.zeros((N, T, D))
+for n in range(N):
+    for t in range(T):
+        out[n, t, :] = W[x[n, t], :]
+```
+以上是 naive 的实现，如果用 python 的 indexing 的话，一行就够了
+```python
+out = W[x, :]
+```
+
+#### backward
+```python
+N, T = x.shape
+V, D = W.shape
+dW = np.zeros_like(W)
+
+for v in range(V):
+    for n in range(N):
+        for t in range(T):
+            if x[n, t] == v:
+                dW[x[n, t], :] += dout[n, t, :]
+```
+同样，先写 naive 形式，用 np.add.at 的话
+```python
+dW = np.zeros_like(W)
+np.add.at(dW, x, dout)
+```
+np.add.at 在 numpy 的教程里解释的也不多，这里究竟是如何 indexing 的，对照 naive 方法自己体会吧。
+
+### RNN for image captioning
+训练一个 RNN 来做 image caption 需要输入图片的 feature 和 caption，并用同样的 caption 做 label。整个过程包含三个学习过程，需要训练三组参数。分别为：1.图片的 feature 向 h(0) 的 projection；2. RNN；3. 单词的 projection。
+
+#### 初始化
+##### 图片 feature 向 h(0) 的 projection
+
+输入的图片 feature 是从 VGG 的 FC7 层截取的，原始值是 4096 维的，为了减小计算量，通过 PCA 降维到 512 维，而 RNN 的 h(0) 是 H 维的。从形如 (N, D) 的 feature 映射到 (N, H) 的隐状态，需要一组形如 (D, H) 的参数
+```python
+self.params['W_feature'] = np.random.randn((input_dim, hidden_dim)) / np.sqrt(input_dim)
+self.params['b_feature'] = np.zeros(hidden_dim, )
+```
+
+##### RNN
+一个 RNN 需要两组参数，一组是隐状态之间的转换参数 $W_x$ 和 $W_h$；另一组是隐状态向 score 的转换参数 $W_s$。各个参数的形状已经在上面的图中标注的很清楚了。
+```python
+self.params['Wx'] = np.random.randn((wordvec_dim, hidden_dim)) / np.sqrt(wordvec_dim)
+self.params['Wh'] = np.random.randn((hidden_dim, hidden_dim)) / np.sqrt(hidden_dim)
+self.params['bh'] = np.zeros(hidden_dim, )
+self.params['Ws'] = np.random.randn((hidden_dim, vocab_size)) / np.sqrt(hidden_dim)
+self.params['bs'] = np.zeros(vocab_size, )
+```
+
+##### Word Embedding
+进行 word embedding 的参数形如 (V, W)
+```python
+self.params['W_word'] = np.random.randn((vocab_size, wordvec_dim)) / 100
+```
+这里要注意的是如何将同一个 caption 拆分成输入的 data 和 label，并且要注意一个 RNN time capsule 中的时序问题。
+
+首先，Coco 的一个 caption 有 17 位，以 \<START> 始，以 \<END> 或者是 \<NULL> 止。这里，作为输入的 caption_in 是取 caption 的前16位 [0, T-1]，所以必定是以 \<START> 开始的，去掉了最后一个单词（无论是 \<END> 还是 \<NULL>）；而作为 label 的 caption_out 取后16位 [1, T]，去掉了开头的 \<START>。所以整个 RNN 所有时刻的输入输出对应关系是
+![CNN_in_out_sync](https://github.com/FortiLeiZhang/cs231n/raw/master/images/CNN_in_out_sync.jpg)
+
+需要注意的是，h(0) 作为初始状态，是不参与到 caption 的输出的。
+
+
+
+
 
 
 

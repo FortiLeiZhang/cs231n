@@ -173,10 +173,34 @@ def rnn_full_backward(caches):
     return dx, dh0, dWx, dWh, dbh, dWs, dbs
     
 def word_embedding_forward(x, W):
-    pass
+    
+#     N, T = x.shape
+#     V, D = W.shape
+#     out = np.zeros((N, T, D))
+#     for n in range(N):
+#         for t in range(T):
+#             out[n, t, :] = W[x[n, t], :]
+
+    out = W[x, :]
+    cache = (x, W)
+    return out, cache
 
 def word_embedding_backward(dout, cache):
-    pass
+    (x, W) = cache
+    
+#     N, T = x.shape
+#     V, D = W.shape
+#     dW = np.zeros_like(W)
+    
+#     for v in range(V):
+#         for n in range(N):
+#             for t in range(T):
+#                 if x[n, t] == v:
+#                     dW[x[n, t], :] += dout[n, t, :]
+    
+    dW = np.zeros_like(W)
+    np.add.at(dW, x, dout)
+    return dW
 
 def sigmoid(x):
     pass
