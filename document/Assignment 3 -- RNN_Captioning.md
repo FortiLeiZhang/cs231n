@@ -163,3 +163,15 @@ self.params['W_word'] = np.random.randn((vocab_size, wordvec_dim)) / 100
 ![test_time](https://github.com/FortiLeiZhang/cs231n/raw/master/images/CNN_test_time.jpg)
 
 RNN 在 test 与 train 不同，首先依旧是根据图片的 feature 映射出初始状态 h(0)，同样，h(0) 作为初始状态，是不参与到计算 caption 的输出的。隐状态 h(1) 的输入是 x(0): \<START>，输出 caption 的第一个单词 x(1)，然后以 x(1) 作为第二个隐状态的输入，以此类推直至到序列允许的最大长度结束。
+
+需要注意的是，这里序列允许的最大长度 max_length 和训练时一个 time capsule 的时序最大长度 T 没有任何关系。
+
+> INLINE QUESTION 1
+>
+>In our current image captioning setup, our RNN language model produces a word at every timestep as its output. However, an alternate way to pose the problem is to train the network to operate over characters (e.g. 'a', 'b', etc.) as opposed to words, so that at it every timestep, it receives the previous character as input and tries to predict the next character in the sequence. For example, the network might generate a caption like
+>
+> 'A', ' ', 'c', 'a', 't', ' ', 'o', 'n', ' ', 'a', ' ', 'b', 'e', 'd'
+>
+> Can you describe one advantage of an image-captioning model that uses a character-level RNN? Can you also describe one disadvantage? HINT: there are several valid answers, but it might be useful to compare the parameter space of word-level and character-level models.
+
+以单词为单位的 RNN，词汇表可以很大，而且每次的输出至少能够保证是有意义的单词；而以字母为单位的 RNN，词汇表是固定大小，但是输出的范围几乎是无穷的，并且不能保证输出的组合是有意义的单词。所以一字母为单位的 RNN 效果应该不如一单词为单位的 RNN。
