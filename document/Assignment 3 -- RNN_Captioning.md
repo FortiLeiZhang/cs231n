@@ -166,7 +166,7 @@ RNN 在 test 与 train 不同，首先依旧是根据图片的 feature 映射出
 
 需要注意的是，这里序列允许的最大长度 max_length 和训练时一个 time capsule 的时序最大长度 T 没有任何关系。
 
-> INLINE QUESTION 1
+> Inline Question 1
 >
 >In our current image captioning setup, our RNN language model produces a word at every timestep as its output. However, an alternate way to pose the problem is to train the network to operate over characters (e.g. 'a', 'b', etc.) as opposed to words, so that at it every timestep, it receives the previous character as input and tries to predict the next character in the sequence. For example, the network might generate a caption like
 >
