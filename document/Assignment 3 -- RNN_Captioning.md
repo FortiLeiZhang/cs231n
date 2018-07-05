@@ -153,29 +153,13 @@ self.params['W_word'] = np.random.randn((vocab_size, wordvec_dim)) / 100
 ```
 这里要注意的是如何将同一个 caption 拆分成输入的 data 和 label，并且要注意一个 RNN time capsule 中的时序问题。
 
-首先，Coco 的一个 caption 有 17 位，以 \<START> 始，以 \<END> 或者是 \<NULL> 止。这里，作为输入的 caption_in 是取 caption 的前16位 [0, T-1]，所以必定是以 \<START> 开始的，去掉了最后一个单词（无论是 \<END> 还是 \<NULL>）；而作为 label 的 caption_out 取后16位 [1, T]，去掉了开头的 \<START>。所以整个 RNN 所有时刻的输入输出对应关系是
+首先，Coco 的一个 caption 有 17 位，以 \<START> 始，以 \<END> 或者是 \<NULL> 止。这里，作为输入的 caption_in 是取 caption 的前16位 [0, T-1]，所以必定是以 \<START> 开始的，去掉了最后一个单词（无论是 \<END> 还是 \<NULL>）；而作为 label 的 caption_out 取后16位 [1, T]，去掉了开头的 \<START>。所以整个 RNN 所有时刻的输入输出对应关系如图所示。
+
 ![CNN_in_out_sync](https://github.com/FortiLeiZhang/cs231n/raw/master/images/CNN_in_out_sync.jpg)
 
 需要注意的是，h(0) 作为初始状态，是不参与到计算 caption 的输出的。
 
 #### Test-time sampling
+![test_time](https://github.com/FortiLeiZhang/cs231n/raw/master/images/CNN_test_time.jpg)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-end
+RNN 在 test 与 train 不同，首先依旧是根据图片的 feature 映射出初始状态 h(0)，同样，h(0) 作为初始状态，是不参与到计算 caption 的输出的。隐状态 h(1) 的输入是 x(0): \<START>，输出 caption 的第一个单词 x(1)，然后以 x(1) 作为第二个隐状态的输入，以此类推直至到序列允许的最大长度结束。
