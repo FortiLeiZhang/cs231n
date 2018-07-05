@@ -23,6 +23,8 @@ class CaptioningRNN(object):
         vocab_size = len(word_to_idx)
         self.vocab_size = vocab_size
         self._null = word_to_idx['<NULL>']
+        self._start = word_to_idx.get('<START>', None)
+        self._end = word_to_idx.get('<END>', None)
         
         self.params['W_feature'] = np.random.randn(input_dim, hidden_dim) / np.sqrt(input_dim)
         self.params['b_feature'] = np.zeros(hidden_dim, )
@@ -47,18 +49,58 @@ class CaptioningRNN(object):
         mask = (caption_out != self._null)
         
         W_feature, b_feature = self.params['W_feature'], self.params['b_feature']
-        h0, cache = affine_forward(features, W_feature, b_feature)
+        h0, cache_feature = affine_forward(features, W_feature, b_feature)
         
         W_word = self.params['W_word']
-        x, cache = word_embedding_forward(caption_in, W_word)
+        x, cache_word = word_embedding_forward(caption_in, W_word)
 
         Wx, Wh, bh = self.params['Wx'], self.params['Wh'], self.params['bh']
+        h, cache_rnn = rnn_forward(x, h0, Wx, Wh, bh)
+        
         Ws, bs = self.params['Ws'], self.params['bs']
-        h, cache = rnn_forward(x, h0, Wx, Wh, bh)
-        out, cache = temporal_affine_forward(h, Ws, bs)
-        loss, dx = temporal_softmax_loss(out, caption_out, mask)
+        out, cache_score = temporal_affine_forward(h, Ws, bs)
+
+        loss, dscore = temporal_softmax_loss(out, caption_out, mask)
+        
+        dLossdh, dWs, dbs = temporal_affine_backward(dscore, cache_score)
+        grads['Ws'] = dWs
+        grads['bs'] = dbs
+        
+        dx, dh0, dWx, dWh, dbh = rnn_backward(dLossdh, cache_rnn)
+        grads['Wx'] = dWx
+        grads['Wh'] = dWh
+        grads['bh'] = dbh
+        
+        dW_word = word_embedding_backward(dx, cache_word)
+        grads['W_word'] = dW_word
+        
+        _, dW_feature, db_feature = affine_backward(dh0, cache_feature)
+        grads['W_feature'] = dW_feature
+        grads['b_feature'] = db_feature
 
         return loss, grads
 
     def sample(self, features, max_length=30):
-        pass
+        W_feature, b_feature = self.params['W_feature'], self.params['b_feature']
+        W_word = self.params['W_word']
+        Wx, Wh, bh = self.params['Wx'], self.params['Wh'], self.params['bh']
+        Ws, bs = self.params['Ws'], self.params['bs']
+        
+        N = features.shape[0]
+        captions = self._null * np.ones((N, max_length), dtype=np.int32)
+        captions[:, 0] = self._start
+
+        h0, _ = affine_forward(features, W_feature, b_feature)
+        x0, _ = word_embedding_forward(captions[:, 0], W_word)
+        input_word = x0
+        prev_h = h0
+        
+        for i in range(1, max_length):
+            current_h, _ = rnn_step_forward(input_word, prev_h, Wx, Wh, bh)
+            score, _ = affine_forward(current_h, Ws, bs)
+            captions[:, i] = np.argmax(score, axis=1)
+
+            input_word, _ = word_embedding_forward(captions[:, i], W_word)
+            prev_h = current_h
+        
+        return captions    

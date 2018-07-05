@@ -128,8 +128,7 @@ np.add.at 在 numpy 的教程里解释的也不多，这里究竟是如何 index
 ### RNN for image captioning
 训练一个 RNN 来做 image caption 需要输入图片的 feature 和 caption，并用同样的 caption 做 label。整个过程包含三个学习过程，需要训练三组参数。分别为：1.图片的 feature 向 h(0) 的 projection；2. RNN；3. 单词的 projection。
 
-#### 初始化
-##### 图片 feature 向 h(0) 的 projection
+#### 图片 feature 向 h(0) 的 projection
 
 输入的图片 feature 是从 VGG 的 FC7 层截取的，原始值是 4096 维的，为了减小计算量，通过 PCA 降维到 512 维，而 RNN 的 h(0) 是 H 维的。从形如 (N, D) 的 feature 映射到 (N, H) 的隐状态，需要一组形如 (D, H) 的参数
 ```python
@@ -137,7 +136,7 @@ self.params['W_feature'] = np.random.randn((input_dim, hidden_dim)) / np.sqrt(in
 self.params['b_feature'] = np.zeros(hidden_dim, )
 ```
 
-##### RNN
+#### RNN
 一个 RNN 需要两组参数，一组是隐状态之间的转换参数 $W_x$ 和 $W_h$；另一组是隐状态向 score 的转换参数 $W_s$。各个参数的形状已经在上面的图中标注的很清楚了。
 ```python
 self.params['Wx'] = np.random.randn((wordvec_dim, hidden_dim)) / np.sqrt(wordvec_dim)
@@ -147,7 +146,7 @@ self.params['Ws'] = np.random.randn((hidden_dim, vocab_size)) / np.sqrt(hidden_d
 self.params['bs'] = np.zeros(vocab_size, )
 ```
 
-##### Word Embedding
+#### Word Embedding
 进行 word embedding 的参数形如 (V, W)
 ```python
 self.params['W_word'] = np.random.randn((vocab_size, wordvec_dim)) / 100
@@ -157,8 +156,9 @@ self.params['W_word'] = np.random.randn((vocab_size, wordvec_dim)) / 100
 首先，Coco 的一个 caption 有 17 位，以 \<START> 始，以 \<END> 或者是 \<NULL> 止。这里，作为输入的 caption_in 是取 caption 的前16位 [0, T-1]，所以必定是以 \<START> 开始的，去掉了最后一个单词（无论是 \<END> 还是 \<NULL>）；而作为 label 的 caption_out 取后16位 [1, T]，去掉了开头的 \<START>。所以整个 RNN 所有时刻的输入输出对应关系是
 ![CNN_in_out_sync](https://github.com/FortiLeiZhang/cs231n/raw/master/images/CNN_in_out_sync.jpg)
 
-需要注意的是，h(0) 作为初始状态，是不参与到 caption 的输出的。
+需要注意的是，h(0) 作为初始状态，是不参与到计算 caption 的输出的。
 
+#### Test-time sampling
 
 
 
