@@ -203,10 +203,29 @@ def word_embedding_backward(dout, cache):
     return dW
 
 def sigmoid(x):
-    pass
+    pos_mask = (x >= 0)
+    neg_mask = (x < 0)
+    z = np.zeros_like(x)
+    z[pos_mask] = np.exp(-x[pos_mask])
+    z[neg_mask] = np.exp(x[neg_mask])
+    top = np.ones_like(x)
+    top[neg_mask] = z[neg_mask]
+    return top / (1 + z)
 
 def lstm_step_forward(x, prev_h, prev_c, Wx, Wh, b):
-    pass
+    N, H = prev_h.shape
+    temp = x.dot(Wx) + prev_h.dot(Wh) + b
+    
+    input_gate = sigmoid(temp[:, :H])
+    forget_gate = sigmoid(temp[:, H:2*H])
+    output_gate = sigmoid(temp[:, 2*H:3*H])
+    gate_gate = np.tanh(temp[:, 3*H:4*H])
+    
+    current_c = forget_gate * prev_c + input_gate * gate_gate
+    current_h = output_gate * np.tanh(current_c)
+    
+    cache = (input_gate, forget_gate, output_gate, gate_gate)
+    return current_h, current_c, cache
 
 def lstm_step_backward(dnext_h, dnext_c, cache):
     pass
