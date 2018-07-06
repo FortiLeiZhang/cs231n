@@ -264,9 +264,42 @@ def lstm_step_backward(dcurrent_h, dcurrent_c, cache):
     
     return dx, dprev_h, dprev_c, dWx, dWh, dbh
 
-def lstm_forward(x, h0, Wx, Wh, b):
-    pass
+def lstm_forward(x, h0, Wx, Wh, bh):
+    N, T, W = x.shape
+    N, H = h0.shape
+    
+    h = np.zeros((N, T, H))
+    caches = {}
+    caches['N'], caches['T'], caches['W'], caches['H'] = N, T, W, H
+    prev_h = h0
+    prev_c = np.zeros_like(h0)
+    
+    for i in range(T):
+        cache_name = 'cache%d' %i
+        input_x = x[:, i, :]
+        prev_h, prev_c, caches[cache_name] = lstm_step_forward(input_x, prev_h, prev_c, Wx, Wh, bh)
+        h[:, i, :] = prev_h
+        
+    return h, caches
 
-def lstm_backward(dh, cache):
-    pass
-
+def lstm_backward(dout, caches):
+    N, T, W, H = caches['N'], caches['T'], caches['W'], caches['H']
+    
+    dx = np.zeros((N, T, W))
+    dWx = np.zeros((W, 4*H))
+    dWh = np.zeros((H, 4*H))
+    dbh = np.zeros((4*H,))
+    dcurrent_h = np.zeros((N, H))
+    dcurrent_c = np.zeros((N, H))
+    
+    for i in reversed(range(T)):
+        cache_name = 'cache%d' %i
+        cache = caches[cache_name]
+        dcurrent_h += dout[:, i, :]
+        dx[:, i, :], dcurrent_h, dcurrent_c, dWx_, dWh_, dbh_ = lstm_step_backward(dcurrent_h, dcurrent_c, cache)
+        
+        dWx += dWx_
+        dWh += dWh_
+        dbh += dbh_
+    dh0 = dcurrent_h
+    return dx, dh0, dWx, dWh, dbh

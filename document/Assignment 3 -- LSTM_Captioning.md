@@ -22,7 +22,7 @@ $$
 ReLU 函数的导数要么是 0，要么是 1,。如果是0的话，因为是连乘，所以该时刻以及之前的梯度就一直为 0 了，那么神经元就死掉了。如果 ReLU 的导数在取 1 的范围内的话，连乘中包含一项 W, 在 RNN 的一个 time capsule 中，W 是不变的，只要 W 中有大于 1 的特征值，那么这个连乘就会导致一个数值很大的矩阵；这不像在 CNN 中，随梯度向后传递的 W 是独立的，各个 W 的特征值不会同时大于1或者小于1，所以很大程度上会抵消梯度爆炸的结果。
 上述两点实际上都有办法解决。真正选择使用 LSTM 而不用 ReLU 的原因并不是因为梯度消失的问题，而是 LSTM 可以引入长期的记忆，即可以学习长距离的依存关系。
 
-### LSTM
+### LSTM原理
 由于梯度消失，Vanilla RNN 仅有短期记忆，而 LSTM 通过 memory cell 控制引入了长期记忆。
 ![LSTM](https://github.com/FortiLeiZhang/cs231n/raw/master/images/LSTM.jpg)
 
@@ -51,22 +51,40 @@ $$
 ##### Affine layer
 产生 score 以及 loss 的 affine layer 与 RNN 相同，这里不再赘述。
 
+### LSTM 代码实现
 
+##### LSTM step forward
+没什么好说的。
 
+##### LSTM step backward
+![LSTM_step_back](https://github.com/FortiLeiZhang/cs231n/raw/master/images/LSTM_step_back.jpg)
 
+在写 backprop 时，需要注意的是梯度分别沿着两条路径流经 hidden state h(t) 和 cell state C(t)。
 
+对于 h(t) 来说，路径 1 是从 loss 传递下来的梯度，这里并没有给出来；路径 2 是从下一 hidden state 传递下来的梯度，也就是这里的输入参数 dcurrent_h。
 
+对于 C(t) 来说，路径 3 是从此时刻的 h(t) 传递过来的梯度，是需要通过计算得到的；路径 4 是从下一 cell 传递过来的梯度，也就是这里的输入参数 dcurrent_c。所以
+```python
+Dcurrent_c = dcurrent_h * output_gate * de_tanh(current_c)
+Dcurrent_c +=  dcurrent_c
+```
 
+##### LSTM forward
+这里要注意的是，作业里很清楚地说了，初始的 hidden state 作为参数 h0 传递给函数；而初始的 cell state 为0。而且 cell state 作为 LSTM 的内部变量是不返回的。
 
+##### LSTM backward
+函数的输出参数 dout 实际上就是上图中路径 1 在各个时刻的值，所以不要忘记
+```python
+dcurrent_h += dout[:, i, :]
+```
+路径 2,3,4 的值都可以在 lstm_step_backward 中计算出来。
 
+另外，在最终 T 状态，由下一 hidden state 和 cell state 传递过来的梯度都是0。
 
+> Inline Question
+>
+>Recall that in an LSTM the input gate i , forget gate f, and output gate o are all outputs of a sigmoid function. Why don't we use the ReLU activation function instead of sigmoid to compute these values? Explain.
 
+forget gate 的作用是从上一个 hidden state 中拿多少信息放到新的 cell state 中，input gate 的作用是从新生产的状态中拿多少放到新的 cell state 中，output gate 的作用是从上一个 hidden state 拿多少信息来产生新的 hidden state。上述三个门的作用是确定拿 **多少**，所以门控的输出应该在 (0, 1) 之间，因此要用 sigmoid 函数。如果用 ReLU 的话，就成了将原始的信号放大多少倍了。
 
-
-
-
-
-
-
-
-end
+output gate 使用的是 tanh 函数，可以用 ReLU 取代。不用 ReLU 的原因大概有：首先由于 W 的连乘，容易梯度爆炸；其次，ReLU 的主要作用就是防止梯度消失，而 LSTM 的主要作用也是防止梯度的消失，所以 ReLU 就没有必要再用了。

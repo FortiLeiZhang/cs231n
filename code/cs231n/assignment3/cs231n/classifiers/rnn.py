@@ -26,12 +26,14 @@ class CaptioningRNN(object):
         self._start = word_to_idx.get('<START>', None)
         self._end = word_to_idx.get('<END>', None)
         
+        dim_expand = {'rnn': 1, 'lstm': 4}[self.cell_type]
+        
         self.params['W_feature'] = np.random.randn(input_dim, hidden_dim) / np.sqrt(input_dim)
         self.params['b_feature'] = np.zeros(hidden_dim, )
         
-        self.params['Wx'] = np.random.randn(wordvec_dim, hidden_dim) / np.sqrt(wordvec_dim)
-        self.params['Wh'] = np.random.randn(hidden_dim, hidden_dim) / np.sqrt(hidden_dim)
-        self.params['bh'] = np.zeros(hidden_dim, )
+        self.params['Wx'] = np.random.randn(wordvec_dim, dim_expand * hidden_dim) / np.sqrt(wordvec_dim)
+        self.params['Wh'] = np.random.randn(hidden_dim, dim_expand * hidden_dim) / np.sqrt(hidden_dim)
+        self.params['bh'] = np.zeros(dim_expand * hidden_dim, )
         self.params['Ws'] = np.random.randn(hidden_dim, vocab_size) / np.sqrt(hidden_dim)
         self.params['bs'] = np.zeros(vocab_size, )
         
@@ -55,7 +57,10 @@ class CaptioningRNN(object):
         x, cache_word = word_embedding_forward(caption_in, W_word)
 
         Wx, Wh, bh = self.params['Wx'], self.params['Wh'], self.params['bh']
-        h, cache_rnn = rnn_forward(x, h0, Wx, Wh, bh)
+        if self.cell_type == 'rnn':
+            h, cache = rnn_forward(x, h0, Wx, Wh, bh)
+        elif self.cell_type == 'lstm':
+            h, cache = lstm_forward(x, h0, Wx, Wh, bh)
         
         Ws, bs = self.params['Ws'], self.params['bs']
         out, cache_score = temporal_affine_forward(h, Ws, bs)
@@ -66,7 +71,11 @@ class CaptioningRNN(object):
         grads['Ws'] = dWs
         grads['bs'] = dbs
         
-        dx, dh0, dWx, dWh, dbh = rnn_backward(dLossdh, cache_rnn)
+        if self.cell_type == 'rnn':
+            dx, dh0, dWx, dWh, dbh = rnn_backward(dLossdh, cache)
+        elif self.cell_type == 'lstm':
+            dx, dh0, dWx, dWh, dbh = lstm_backward(dLossdh, cache)
+        
         grads['Wx'] = dWx
         grads['Wh'] = dWh
         grads['bh'] = dbh
@@ -95,12 +104,18 @@ class CaptioningRNN(object):
         input_word = x0
         prev_h = h0
         
+        if self.cell_type == 'lstm':
+            prev_c = np.zeros_like(h0)
+        
         for i in range(1, max_length):
-            current_h, _ = rnn_step_forward(input_word, prev_h, Wx, Wh, bh)
-            score, _ = affine_forward(current_h, Ws, bs)
+            if self.cell_type == 'rnn':
+                prev_h, _ = rnn_step_forward(input_word, prev_h, Wx, Wh, bh)
+            elif self.cell_type == 'lstm':
+                prev_h, prev_c, _ = lstm_step_forward(input_word, prev_h, prev_c, Wx, Wh, bh)
+
+            score, _ = affine_forward(prev_h, Ws, bs)
             captions[:, i] = np.argmax(score, axis=1)
 
             input_word, _ = word_embedding_forward(captions[:, i], W_word)
-            prev_h = current_h
-        
+          
         return captions    
