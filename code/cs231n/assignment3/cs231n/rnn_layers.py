@@ -212,23 +212,57 @@ def sigmoid(x):
     top[neg_mask] = z[neg_mask]
     return top / (1 + z)
 
-def lstm_step_forward(x, prev_h, prev_c, Wx, Wh, b):
+def de_sigmoid(x):
+    return sigmoid(x) * (1 - sigmoid(x))
+
+def de_tanh(x):
+    return 1 - np.square(np.tanh(x))
+
+def lstm_step_forward(x, prev_h, prev_c, Wx, Wh, bh):
     N, H = prev_h.shape
-    temp = x.dot(Wx) + prev_h.dot(Wh) + b
+    temp = x.dot(Wx) + prev_h.dot(Wh) + bh
     
     input_gate = sigmoid(temp[:, :H])
     forget_gate = sigmoid(temp[:, H:2*H])
     output_gate = sigmoid(temp[:, 2*H:3*H])
     gate_gate = np.tanh(temp[:, 3*H:4*H])
-    
+
     current_c = forget_gate * prev_c + input_gate * gate_gate
     current_h = output_gate * np.tanh(current_c)
     
-    cache = (input_gate, forget_gate, output_gate, gate_gate)
+    cache = (x, prev_h, prev_c, Wx, Wh, bh, input_gate, forget_gate, output_gate, gate_gate, temp, current_c)
     return current_h, current_c, cache
 
-def lstm_step_backward(dnext_h, dnext_c, cache):
-    pass
+def lstm_step_backward(dcurrent_h, dcurrent_c, cache):
+    (x, prev_h, prev_c, Wx, Wh, bh, input_gate, forget_gate, output_gate, gate_gate, temp, current_c) = cache
+    N, H = prev_h.shape
+    Dtemp = np.zeros_like(temp)
+    
+    # current_h = output_gate * np.tanh(current_c)
+    Doutput_gate = dcurrent_h * np.tanh(current_c)
+    Dcurrent_c = dcurrent_h * output_gate * de_tanh(current_c)
+    Dcurrent_c +=  dcurrent_c
+    
+    # current_c = forget_gate * prev_c + input_gate * gate_gate
+    Dforget_gate = Dcurrent_c * prev_c
+    Dprev_c = Dcurrent_c * forget_gate
+    Dinput_gate = Dcurrent_c * gate_gate
+    Dgate_gate = Dcurrent_c * input_gate
+    
+    Dtemp[:, 3*H:4*H] = Dgate_gate * de_tanh(temp[:, 3*H:4*H])
+    Dtemp[:, 2*H:3*H] = Doutput_gate * de_sigmoid(temp[:, 2*H:3*H])
+    Dtemp[:, H:2*H] = Dforget_gate * de_sigmoid(temp[:, H:2*H])
+    Dtemp[:, :H] = Dinput_gate * de_sigmoid(temp[:, :H])
+    
+    # temp = x.dot(Wx) + prev_h.dot(Wh) + bh
+    dx = Dtemp.dot(Wx.T)
+    dWx = x.T.dot(Dtemp)
+    dprev_h = Dtemp.dot(Wh.T)
+    dWh = prev_h.T.dot(Dtemp)
+    dbh = np.sum(Dtemp, axis=0)
+    dprev_c = Dprev_c
+    
+    return dx, dprev_h, dprev_c, dWx, dWh, dbh
 
 def lstm_forward(x, h0, Wx, Wh, b):
     pass

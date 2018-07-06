@@ -24,7 +24,7 @@ ReLU 函数的导数要么是 0，要么是 1,。如果是0的话，因为是连
 
 ### LSTM
 由于梯度消失，Vanilla RNN 仅有短期记忆，而 LSTM 通过 memory cell 控制引入了长期记忆。
-![LSTM](https://github.com/FortiLeiZhang/cs231n/raw/master/images/lstm.jpg)
+![LSTM](https://github.com/FortiLeiZhang/cs231n/raw/master/images/LSTM.jpg)
 
 如图所示，与传统的 RNN 相比，LSTM 除了包含原有的 hidden state 以外，还增加了随时间更新的 memory cell。某一时刻的 cell 与 hidden state 有着相同的形状，两者相互依赖于彼此进行状态的更新。具体来看，需要学习的参数 $W_x$ 和 $W_h$ 由 RNN 中的形如 (W, H) 和 (H, H) 变成了 (W, 4H) 和 (H, 4H)，即 (W, f+i+g+o) 和 (H, f+i+g+o)，而 $h(t-1) \cdot W_h + x(t) \cdot W_x$ 的结果也成为形如 (N, f+i+g+o)，其中 f/i/g 用来更新 cell 的状态，得到的新的 cell 状态 C(t) 与 o 一起来更新 h(t)。
 
@@ -48,7 +48,8 @@ $$
 h(t) = o \cdot \tanh(C(t))
 $$
 
-
+##### Affine layer
+产生 score 以及 loss 的 affine layer 与 RNN 相同，这里不再赘述。
 
 
 
