@@ -88,3 +88,48 @@ dcurrent_h += dout[:, i, :]
 forget gate 的作用是从上一个 hidden state 中拿多少信息放到新的 cell state 中，input gate 的作用是从新生产的状态中拿多少放到新的 cell state 中，output gate 的作用是从上一个 hidden state 拿多少信息来产生新的 hidden state。上述三个门的作用是确定拿 **多少**，所以门控的输出应该在 (0, 1) 之间，因此要用 sigmoid 函数。如果用 ReLU 的话，就成了将原始的信号放大多少倍了。
 
 output gate 使用的是 tanh 函数，可以用 ReLU 取代。不用 ReLU 的原因大概有：首先由于 W 的连乘，容易梯度爆炸；其次，ReLU 的主要作用就是防止梯度消失，而 LSTM 的主要作用也是防止梯度的消失，所以 ReLU 就没有必要再用了。
+
+### GRU: Gated Recurrent Unit
+GRU 作为 LSTM 的一种变体，用的也比较多，这里也写一下。与 LSTM 相比，GRU 有两个门：update gate z(t) 和 reset gate r(t)。这两个门的输入都是 h(t-1) 和 x(t)，所以 $W_x$ 是形如 (W, 2H) 的，而 $W_h$ 是形如 (H, 2H)的。两者都是通过 sigmoid 函数得到的：
+$$
+z_{t}, r_{t} = \sigma \Big( W_{h} \cdot h(t-1) + W_{x} \cdot x(t) + b \Big)
+$$
+
+随后，用 r(t) 和 h(t-1)，x(t) 产生一个新的中间 hidden state $\tilde{h}_t$：
+$$
+\tilde{h}_t = \tanh \Big( W_{\tilde{h}} \cdot \big(r_t * h(t-1) \big) + W_{\tilde{x}} \cdot x(t)\Big)
+$$
+这里可以看出，reset gate 的作用是从上一个 hidden state 中取多少出来用来产生新的中间状态。
+
+最后，下一时刻的 hidden state 由 update gate，h(t-1) 和中间态  $\tilde{h}_t$ 共同决定：
+$$
+h(t) = (1 - z_t) * h(t-1) + z_t * \tilde{h}_t
+$$
+这里可以看出，update gate $z_t$ 的作用是从上一个 hidden state 和 中间态各取多少信息来构成新的 hidden state。
+
+GRU 的代码实现也写在作业里面了。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+end

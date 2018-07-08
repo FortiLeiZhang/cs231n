@@ -303,3 +303,111 @@ def lstm_backward(dout, caches):
         dbh += dbh_
     dh0 = dcurrent_h
     return dx, dh0, dWx, dWh, dbh
+
+def gru_step_forward(x, prev_h, Wx, Wh, bh, Wxt, Wht, bht):
+    N, H = prev_h.shape
+    N, W = x.shape
+    
+    temp1 = x.dot(Wx) + prev_h.dot(Wh) + bh
+    temp_gate = sigmoid(temp1)
+    reset_gate = temp_gate[:, 0:H]
+    update_gate = temp_gate[:, H:2*H]
+    
+    temp2 = (reset_gate * prev_h).dot(Wht) + x.dot(Wxt) + bht
+    temp_h = np.tanh(temp2)
+    current_h = (1 - update_gate) * prev_h + update_gate * temp_h
+    cache = (x, prev_h, Wx, Wh, bh, Wht, Wxt, bht, reset_gate, update_gate, temp_h, temp_gate, temp1, temp2)
+    
+    return current_h, cache
+
+def gru_step_backward(dcurrent_h, cache):
+    (x, prev_h, Wx, Wh, bh, Wht, Wxt, bht, reset_gate, update_gate, temp_h, temp_gate, temp1, temp2) = cache
+    Dtemp_gate = np.zeros_like(temp_gate)
+    N, H = prev_h.shape
+    
+    # current_h = (1 - update_gate) * prev_h + update_gate * temp_h
+    Dprev_h1 = dcurrent_h * (1 - update_gate)
+    Dtemp_h = dcurrent_h * update_gate
+    Dupdate_gate = dcurrent_h * (-prev_h + temp_h)
+    
+    # temp_h = np.tanh(temp2)
+    Dtemp2 = Dtemp_h * de_tanh(temp2)
+    
+    # temp2 = (reset_gate * prev_h).dot(Wht) + x.dot(Wxt) + bht
+    Dx1 = Dtemp2.dot(Wxt.T)
+    DWxt = x.T.dot(Dtemp2)
+    Dreset_gate = Dtemp2.dot(Wht.T) * prev_h
+    Dprev_h2 = Dtemp2.dot(Wht.T) * reset_gate
+    DWht = (reset_gate * prev_h).T.dot(Dtemp2)
+    
+    dbht = np.sum(Dtemp2, axis=0)
+    
+    # update_gate = temp_gate[:, H:2*H]
+    Dtemp_gate[:, H:2*H] = Dupdate_gate
+    
+    # reset_gate = temp_gate[:, 0:H]
+    Dtemp_gate[:, 0:H] = Dreset_gate
+    
+    # temp_gate = sigmoid(temp1)
+    Dtemp1 = Dtemp_gate * de_sigmoid(temp1)
+    
+    # temp1 = x.dot(Wx) + prev_h.dot(Wh) + bh
+    Dx2 = Dtemp1.dot(Wx.T)
+    DWx = x.T.dot(Dtemp1)
+    Dprev_h3 = Dtemp1.dot(Wh.T)
+    DWh = prev_h.T.dot(Dtemp1)
+    
+    dbh = np.sum(Dtemp1, axis=0)
+    
+    dx = Dx1 + Dx2
+    dprev_h = Dprev_h1 + Dprev_h2 + Dprev_h3
+    dWx = DWx
+    dWh = DWh
+    dWxt = DWxt
+    dWht = DWht
+
+    return dx, dprev_h, dWx, dWh, dbh, dWxt, dWht, dbht
+
+def gru_forward(x, h0, Wx, Wh, bh, Wxt, Wht, bht):
+    N, T, W = x.shape
+    N, H = h0.shape
+    
+    caches = {}
+    caches['N'], caches['T'], caches['W'], caches['H'] = N, T, W, H
+    
+    h = np.zeros((N, T, H))
+    prev_h = h0
+    
+    for i in range(T):
+        cache_name = 'cache%d' %i
+        input_x = x[:, i, :]
+        prev_h, caches[cache_name] = gru_step_forward(input_x, prev_h, Wx, Wh, bh, Wxt, Wht, bht)
+        h[:, i, :] = prev_h   
+    
+    return h, caches
+
+def gru_backward(dout, caches):
+    N, T, W, H = caches['N'], caches['T'], caches['W'], caches['H']
+    dx = np.zeros((N, T, W))
+    dWx = np.zeros((W, 2*H))
+    dWh = np.zeros((H, 2*H))
+    dbh = np.zeros((2*H, ))
+    dWxt = np.zeros((W, H))
+    dWht = np.zeros((H, H))
+    dbht = np.zeros((H, ))
+    
+    dcurrent_h = np.zeros((N, H))
+    for i in reversed(range(T)):
+        cache_name = 'cache%d' %i
+        cache = caches[cache_name]
+        dcurrent_h += dout[:, i, :]
+        dx[:, i, :], dcurrent_h, dWx_, dWh_, dbh_, dWxt_, dWht_, dbht_ = gru_step_backward(dcurrent_h, cache)
+        
+        dWx += dWx_
+        dWh += dWh_
+        dbh += dbh_
+        dWxt += dWxt_
+        dWht += dWht_
+        dbht += dbht_
+    dh0 = dcurrent_h
+    return dx, dh0, dWx, dWh, dbh, dWxt, dWht, dbht
