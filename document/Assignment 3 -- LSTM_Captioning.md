@@ -108,28 +108,3 @@ $$
 这里可以看出，update gate $z_t$ 的作用是从上一个 hidden state 和 中间态各取多少信息来构成新的 hidden state。
 
 GRU 的代码实现也写在作业里面了。
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-end
