@@ -98,6 +98,20 @@ for i in range(N):
 dx = dpad_x[:, :, p:(in_h+p), p:(in_w+p)]
 ```
 
+**回来补充内容**
+
+后面在实现 GAN 的时候，要用到 ConvTranspose2d 来讲实现 Conv2d 的逆过程，也就是将一张 $m \times m$ 的图片，upsampling 到 $n \times n$，这里 $n > m$。 ConvTranspose2d 的实现方法，与上面计算 dx 的方法完全相同。实际上，不论在 PyTorch 还是在 TensorFlow 里面，ConvTranspose2d 的实现和计算 dx 的梯度的实现，使用的是同一段代码。在 [PyTorch 的文档](https://pytorch.org/docs/stable/nn.html)里明确说明了这一点：
+> This module can be seen as the gradient of Conv2d with respect to its input.
+
+实际上，我用 PyTorch 的 torch.nn.functional.conv_transpose2d 实现了一下计算 dx 的梯度，得到的结果是一样的：
+
+```python
+dout_tensor = torch.from_numpy(dout)
+w_tensor = torch.from_numpy(w)
+dx = torch.nn.functional.conv_transpose2d(dout_tensor, w_tensor, bias=None, stride=s, padding=p)
+dx = dx.numpy()
+```
+
 ##### dw
 根据如上同样的方法：
 $$

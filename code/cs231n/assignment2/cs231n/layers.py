@@ -1,5 +1,6 @@
 from builtins import range
 import numpy as np
+import torch
 
 def affine_forward(x, w, b):  
     N = x.shape[0]
@@ -345,6 +346,26 @@ def conv_backward_naive(dout, cache):
                     dw[oc, ...] += dout[i, oc, hh, ww] * x_pad[i, :, (s*hh):(s*hh+f_h), (s*ww):(s*ww+f_w)]
 
     dx = dx_pad[:, :, p:(in_h+p), p:(in_w+p)]
+    db = np.sum(dout, axis=(0, 2, 3))
+    return dx, dw, db
+
+def conv_backward_conv2d_transpose(dout, cache):
+    (x, w, b, conv_param) = cache
+
+    dw = np.zeros_like(w)
+
+    s = conv_param['stride']
+    p = conv_param['pad']
+
+    N, in_c, in_h, in_w = x.shape
+    N, K, out_h, out_w = dout.shape
+    K, in_c, f_h, f_w = w.shape
+    
+    dout_tensor = torch.from_numpy(dout)
+    w_tensor = torch.from_numpy(w)
+    dx = torch.nn.functional.conv_transpose2d(dout_tensor, w_tensor, bias=None, stride=s, padding=p)
+    dx = dx.numpy()
+    
     db = np.sum(dout, axis=(0, 2, 3))
     return dx, dw, db
 
