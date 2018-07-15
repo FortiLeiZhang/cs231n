@@ -138,12 +138,28 @@ torch.nn.Conv2d(64, 1, (4, 4), stride=2, padding=1)
 torch.nn.ConvTranspose2d(64, 1, (4, 4), stride=2, padding=1)
 ```
 
+> Inline Question 1:
+>
+We will look at an example to see why alternating minimization of the same objective (like in a GAN) can be tricky business.
+>
+>Consider $f(x,y)=xy$. What does $\min_x\max_y f(x,y)$ evaluate to? (Hint: minmax tries to minimize the maximum value achievable.)
+>
+> Now try to evaluate this function numerically for 6 steps, starting at the point $(1,1)$,
+by using alternating gradient (first updating y, then updating x) with step size $1$.
+You'll find that writing out the update step in terms of $x_t,y_t,x_{t+1},y_{t+1}$ will be useful.
+>
+> Record the six pairs of explicit values for $(x_t,y_t)$ in the table below.
 
+具体数据见作业中的代码输出。
 
+> Inline Question 2:
+>
+> Using this method, will we ever reach the optimal value? Why or why not?
 
+不会到达最优解，因为学习曲线在震荡。
 
+> Inline Question 3:
+>
+> If the generator loss decreases during training while the discriminator loss stays at a constant high value from the start, is this a good sign? Why or why not? A qualitative answer is sufficient
 
-
-
-
-end
+不是好的现象。discriminator 的 loss 由两部分组成，第一部分说明它辨识真图片的能力，与 generator 无关；第二部分说明它辨识生成图片的能力。如果 generator 的 loss 下降，说明它欺骗 discriminator 的能力提高了，而 discriminator 的 loss 始终保持很大，很可能是因为 discriminator 太差，甚至连辨识真实图片的能力都很差，极端情况就是 discriminator 依 50% 的概率在乱猜。
