@@ -162,4 +162,4 @@ You'll find that writing out the update step in terms of $x_t,y_t,x_{t+1},y_{t+1
 >
 > If the generator loss decreases during training while the discriminator loss stays at a constant high value from the start, is this a good sign? Why or why not? A qualitative answer is sufficient
 
-不是好的现象。discriminator 的 loss 由两部分组成，第一部分说明它辨识真图片的能力，与 generator 无关；第二部分说明它辨识生成图片的能力。如果 generator 的 loss 下降，说明它欺骗 discriminator 的能力提高了，而 discriminator 的 loss 始终保持很大，很可能是因为 discriminator 太差，甚至连辨识真实图片的能力都很差，极端情况就是 discriminator 依 50% 的概率在乱猜。
+不是好的现象。discriminator 的 loss 由两部分组成，第一部分说明它辨识真图片的能力，与 generator 无关；第二部分说明它辨识生成图片的能力。如果 generator 的 loss 下降，说明它欺骗 discriminator 的能力提高了，而 discriminator 的 loss 始终保持很大，很可能是因为 discriminator 太差，甚至连辨识真实图片的能力都很差，极端情况就是 discriminator 依 50% 的概率在乱猜。所以说，generator loss 的下降也很可能是因为 discriminator 太差，很容易被欺骗。
