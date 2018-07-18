@@ -111,7 +111,7 @@ https://www.tensorflow.org/api_docs/python/tf/nn/convolution) 中关于 padding 
 
 到这里，我们得到了对偶的 Conv2d 的输入是 (14, 14) 或者 (15, 15)，输出是 (7, 7)，kernel 是 (4, 4)，stride = 2，那么 padding 就可以计算出来了：
   * 如果输入是取 (14, 14) 的话，(14 - 4 + 2 * padding) / 2 + 1 = 7，此时的 padding 是 1.
-  * 如果输入是取 (15, 15) 的话，(15 - 4 + 2 * padding) / 2 + 1 = 7，此时的 padding 是 1. 那么 padding 是 0.5。
+  * 如果输入是取 (15, 15) 的话，(15 - 4 + 2 * padding) / 2 + 1 = 7，那么 padding 是 0.5。
 
 这两个结果没有对错之分，只不过我们取一个偶数的值是比较好的，所以这里取 14。到此为止，Conv2d 的所有参数都已经确定，即
 ```python
